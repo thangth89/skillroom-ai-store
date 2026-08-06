@@ -26,6 +26,15 @@ type PublicSkillRow = {
   requirements: string[];
 };
 
+function isMissingSortOrderError(error: { code?: string; message: string } | null) {
+  if (!error) return false;
+  return (
+    error.code === "42703" ||
+    error.code === "PGRST204" ||
+    error.message.toLowerCase().includes("sort_order")
+  );
+}
+
 const publicSkillColumns = [
   "slug",
   "name",
@@ -95,11 +104,19 @@ export async function getCatalogPage(page: number) {
   const pages = Math.max(1, Math.ceil(total / pageSize));
   const safePage = Math.min(Math.max(Math.trunc(page) || 1, 1), pages);
   const start = (safePage - 1) * pageSize;
-  const { data, error } = await publishedSkillsQuery()
-    .order("featured", { ascending: false })
-    .order("updated_at", { ascending: false })
+  const orderedResult = await publishedSkillsQuery()
+    .order("sort_order", { ascending: true })
+    .order("created_at", { ascending: true })
     .range(start, start + pageSize - 1)
     .returns<PublicSkillRow[]>();
+
+  const { data, error } = isMissingSortOrderError(orderedResult.error)
+    ? await publishedSkillsQuery()
+        .order("featured", { ascending: false })
+        .order("updated_at", { ascending: false })
+        .range(start, start + pageSize - 1)
+        .returns<PublicSkillRow[]>()
+    : orderedResult;
 
   if (error || !data) return getDemoSkillsPage(page);
 
