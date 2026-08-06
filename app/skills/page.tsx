@@ -18,7 +18,7 @@ export default async function SkillsPage({ searchParams }: { searchParams: Promi
         <p>Khám phá {catalog.total} Skill được phân nhóm rõ ràng, có video kết quả và thông tin sử dụng trước khi mua.</p>
       </section>
       <section className="catalog-section inner-catalog"><div className="shell">
-        <div className="catalog-toolbar"><span>{catalog.total} sản phẩm</span><span>Tối đa 9 sản phẩm mỗi trang</span></div>
+        <div className="catalog-toolbar"><span>{catalog.total} sản phẩm</span><span>6 sản phẩm mỗi trang · 3 × 2</span></div>
         <SkillGrid items={catalog.items} />
         <nav className="pagination" aria-label="Phân trang">
           <Link className={catalog.page === 1 ? "disabled" : ""} href={`/skills?page=${Math.max(1, catalog.page - 1)}`}>← Trước</Link>
