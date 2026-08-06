@@ -14,26 +14,32 @@ export default async function Home() {
       <main>
         <section className="hero shell">
           <div className="hero-copy">
-            <div className="eyebrow"><span /> Skill AI có video kiểm chứng</div>
-            <h1>Thấy kết quả trước.<br /><em>Chọn đúng Skill sau.</em></h1>
-            <p>Xem trực tiếp thành phẩm do từng Skill tạo ra, đọc rõ cách hoạt động rồi mới quyết định mua.</p>
+            <div className="eyebrow"><span /> Skill AI được kiểm chứng bằng video</div>
+            <h1>Xem kết quả thực tế trước khi mua Skill AI.</h1>
+            <p>Khám phá thành phẩm, đọc đầy đủ cách hoạt động và chọn đúng Skill cho công việc của bạn.</p>
             <div className="hero-actions">
-              <Link className="primary-button" href="#catalog">Xem video kết quả <span>↓</span></Link>
-              <Link className="secondary-button" href="/support">Skill hoạt động thế nào?</Link>
+              <Link className="primary-button" href="#catalog">Khám phá kho Skill <span>→</span></Link>
+              <Link className="secondary-button" href="/support">Xem hướng dẫn</Link>
+            </div>
+            <div className="hero-benefits" aria-label="Lợi ích mua hàng">
+              <span>✓ Xem trước kết quả</span>
+              <span>✓ Thanh toán VietQR</span>
+              <span>✓ Nhận file qua email</span>
             </div>
           </div>
           <div className="hero-proof" aria-label="Thông tin cửa hàng">
-            <div className="proof-orbit"><span>PLAY</span></div>
-            <div className="proof-copy"><strong>9</strong><span>Skill nổi bật<br />trên mỗi trang</span></div>
-            <div className="proof-foot">Hover trên máy tính<br />Cuộn tới trên điện thoại</div>
+            <div className="proof-orbit"><span>ĐANG HOẠT ĐỘNG</span></div>
+            <div className="proof-main"><span>KHO SẢN PHẨM SỐ</span><h2>Mua nhanh.<br />Nhận Skill tự động.</h2></div>
+            <div className="proof-copy"><strong>{catalog.total}</strong><span>Skill đang có<br />trong cửa hàng</span></div>
+            <div className="proof-foot">Video chỉ tải khi bạn bấm xem • Tiết kiệm dữ liệu</div>
           </div>
         </section>
 
         <section className="catalog-section" id="catalog">
           <div className="shell">
             <div className="section-heading">
-              <div><span className="section-index">01 / KHO SKILL</span><h2>Xem thành phẩm ngay trên thẻ.</h2></div>
-              <p>Di chuột vào video để phát. Trên điện thoại, video sẽ tự chạy khi nằm trong vùng nhìn.</p>
+              <div><span className="section-index">KHO SKILL NỔI BẬT</span><h2>Chọn Skill bằng kết quả thật.</h2></div>
+              <p>Bấm “Xem video” trên từng sản phẩm để xem thành phẩm. Video không tự tải hoặc tự phát.</p>
             </div>
             <SkillGrid items={catalog.items} />
             <div className="catalog-more">
@@ -44,7 +50,7 @@ export default async function Home() {
         </section>
 
         <section className="process shell">
-          <div className="section-heading compact"><div><span className="section-index">02 / QUY TRÌNH</span><h2>Mua gọn trong ba bước.</h2></div></div>
+          <div className="section-heading compact"><div><span className="section-index">QUY TRÌNH MUA HÀNG</span><h2>Đơn giản trong ba bước.</h2></div></div>
           <div className="process-grid">
             <article><span>01</span><h3>Xem video</h3><p>Đánh giá kết quả thực tế ngay trên từng sản phẩm.</p></article>
             <article><span>02</span><h3>Thanh toán QR</h3><p>Nhập email và quét VietQR được tạo riêng cho đơn hàng.</p></article>
