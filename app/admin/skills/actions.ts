@@ -14,6 +14,12 @@ export type SkillActionState = {
   error: string;
 };
 
+export type SkillOrderActionState = {
+  error: string;
+  success: string;
+  savedIds: string[] | null;
+};
+
 type ParsedSkill = {
   slug: string;
   name: string;
@@ -187,6 +193,30 @@ function dataErrorMessage(message: string, code?: string) {
   return `Không thể lưu Skill: ${message}`;
 }
 
+function isMissingSortOrderError(error: { code?: string; message: string } | null) {
+  if (!error) return false;
+  return (
+    error.code === "42703" ||
+    error.code === "PGRST202" ||
+    error.code === "PGRST204" ||
+    error.message.toLowerCase().includes("sort_order") ||
+    error.message.toLowerCase().includes("reorder_skills")
+  );
+}
+
+async function getNextSortOrder() {
+  const { data, error } = await createAdminClient()
+    .from("skills")
+    .select("sort_order")
+    .order("sort_order", { ascending: false })
+    .limit(1)
+    .maybeSingle<{ sort_order: number }>();
+
+  if (isMissingSortOrderError(error)) return { sortOrder: null, error: null };
+  if (error) return { sortOrder: null, error };
+  return { sortOrder: (data?.sort_order ?? -1) + 1, error: null };
+}
+
 export async function createSkill(
   _previousState: SkillActionState,
   formData: FormData,
@@ -216,9 +246,21 @@ export async function createSkill(
   }
 
   const supabase = createAdminClient();
+  const nextOrder = await getNextSortOrder();
+  if (nextOrder.error) {
+    if (filePath) await supabase.storage.from(getSkillStorageBucket()).remove([filePath]);
+    return { error: `Không thể xác định vị trí Skill: ${nextOrder.error.message}` };
+  }
+
+  const insertData: ParsedSkill & { file_path: string | null; sort_order?: number } = {
+    ...parsed.data,
+    file_path: filePath,
+  };
+  if (nextOrder.sortOrder !== null) insertData.sort_order = nextOrder.sortOrder;
+
   const { data, error } = await supabase
     .from("skills")
-    .insert({ ...parsed.data, file_path: filePath })
+    .insert(insertData)
     .select("id")
     .single<{ id: string }>();
 
@@ -302,4 +344,65 @@ export async function updateSkill(
   revalidatePath(`/checkout/${current.slug}`);
   revalidatePath(`/checkout/${parsed.data.slug}`);
   redirect(`/admin/skills/${id}?saved=1`);
+}
+
+export async function reorderSkills(
+  _previousState: SkillOrderActionState,
+  formData: FormData,
+): Promise<SkillOrderActionState> {
+  await requireAdmin();
+
+  if (!hasAdminDataConfig()) {
+    return {
+      error: "Thiếu cấu hình Supabase trên Vercel.",
+      success: "",
+      savedIds: null,
+    };
+  }
+
+  let ids: string[];
+  try {
+    const parsed = JSON.parse(getText(formData, "skill_ids"));
+    ids = Array.isArray(parsed) ? parsed : [];
+  } catch {
+    ids = [];
+  }
+
+  const validIds =
+    ids.length > 0 &&
+    ids.length <= 500 &&
+    ids.every((id) => typeof id === "string" && /^[0-9a-f-]{36}$/i.test(id)) &&
+    new Set(ids).size === ids.length;
+
+  if (!validIds) {
+    return {
+      error: "Danh sách thứ tự Skill không hợp lệ. Hãy tải lại trang và thử lại.",
+      success: "",
+      savedIds: null,
+    };
+  }
+
+  const { error } = await createAdminClient().rpc("reorder_skills", {
+    skill_ids: ids,
+  });
+
+  if (error) {
+    return {
+      error: isMissingSortOrderError(error)
+        ? "Chưa kích hoạt chức năng sắp xếp trên Supabase. Hãy chạy migration 202608060002_skill_sort_order.sql."
+        : `Không thể lưu thứ tự Skill: ${error.message}`,
+      success: "",
+      savedIds: null,
+    };
+  }
+
+  revalidatePath("/admin/skills");
+  revalidatePath("/");
+  revalidatePath("/skills");
+
+  return {
+    error: "",
+    success: "Đã lưu thứ tự mới và áp dụng ngoài cửa hàng.",
+    savedIds: ids,
+  };
 }
