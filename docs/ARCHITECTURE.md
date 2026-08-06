@@ -36,7 +36,8 @@ Các route thanh toán hiện là điểm nối an toàn, cố ý trả `501` ch
 
 - `app/`: Route và bố cục từng trang.
 - `components/`: Thành phần giao diện dùng lại.
-- `lib/skills.ts`: Dữ liệu demo; sau này thay bằng repository đọc Supabase.
+- `lib/skills.ts`: Dữ liệu demo vẫn dùng cho cửa hàng công khai trong giai đoạn nhập liệu đầu tiên.
+- `lib/supabase/skill-records.ts`: Đọc dữ liệu Skill thật cho khu vực quản trị.
 - `lib/types.ts`: Kiểu dữ liệu dùng chung.
 - `public/demo/`: Video demo cục bộ; khi chạy thật thay URL Cloudflare Stream/YouTube.
 
@@ -45,3 +46,11 @@ Các route thanh toán hiện là điểm nối an toàn, cố ý trả `501` ch
 `PENDING` → `PAID` → `DELIVERY_QUEUED` → `DELIVERED`
 
 Trạng thái lỗi: `EXPIRED`, `PAYMENT_MISMATCH`, `DELIVERY_FAILED`, `REFUNDED`.
+
+## Trạng thái quản lý Skill
+
+- `draft`: Lưu nháp, chưa bán.
+- `published`: Đang bán; bắt buộc đã có file trong bucket riêng tư.
+- `archived`: Đã ẩn nhưng không xóa để giữ lịch sử đơn hàng.
+
+Trang quản trị hỗ trợ thêm, sửa, đổi trạng thái và thay file Skill. Cửa hàng công khai sẽ được chuyển từ dữ liệu demo sang dữ liệu `published` sau khi sản phẩm thật đầu tiên được kiểm tra.

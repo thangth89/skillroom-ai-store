@@ -23,7 +23,7 @@ export function AdminShell({ title, eyebrow, children }: { title: string; eyebro
       <main className="admin-main">
         <header className="admin-topbar">
           <div><span>{eyebrow}</span><h1>{title}</h1></div>
-          <span className="demo-chip">Bản cấu trúc</span>
+          <span className="demo-chip">Khu vực bảo mật</span>
         </header>
         {children}
       </main>
