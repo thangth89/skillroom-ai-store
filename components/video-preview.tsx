@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { parseVideoSource } from "@/lib/video-source";
 
 type VideoPreviewProps = {
   id: string;
@@ -15,10 +16,19 @@ type VideoPreviewProps = {
 export function VideoPreview({ id, src, label, accent, accentSoft, className = "", detail = false }: VideoPreviewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(true);
+  const source = useMemo(() => parseVideoSource(src), [src]);
+  const isFile = source.provider === "file";
 
   const pause = (reset = false) => {
+    if (!isFile) {
+      setPlaying(false);
+      setMuted(true);
+      return;
+    }
+
     const video = videoRef.current;
     if (!video) return;
     video.pause();
@@ -27,14 +37,32 @@ export function VideoPreview({ id, src, label, accent, accentSoft, className = "
   };
 
   const play = async () => {
+    window.dispatchEvent(new CustomEvent("skill-preview-play", { detail: id }));
+
+    if (!isFile) {
+      setPlaying(true);
+      return;
+    }
+
     const video = videoRef.current;
     if (!video) return;
-    window.dispatchEvent(new CustomEvent("skill-preview-play", { detail: id }));
     try {
       await video.play();
       setPlaying(true);
     } catch {
       setPlaying(false);
+    }
+  };
+
+  const toggleSound = () => {
+    const nextMuted = !muted;
+    setMuted(nextMuted);
+
+    if (source.provider === "youtube") {
+      iframeRef.current?.contentWindow?.postMessage(
+        JSON.stringify({ event: "command", func: nextMuted ? "mute" : "unMute", args: [] }),
+        "https://www.youtube-nocookie.com",
+      );
     }
   };
 
@@ -66,34 +94,57 @@ export function VideoPreview({ id, src, label, accent, accentSoft, className = "
     <div
       ref={containerRef}
       className={`video-frame ${detail ? "video-frame-detail" : ""} ${className}`}
-      style={{ "--accent": accent, "--accent-soft": accentSoft } as React.CSSProperties}
+      style={{
+        "--accent": accent,
+        "--accent-soft": accentSoft,
+        ...(source.posterUrl
+          ? {
+              backgroundImage: `linear-gradient(180deg, rgba(0,0,0,.05), rgba(0,0,0,.55)), url(${source.posterUrl})`,
+              backgroundPosition: "center",
+              backgroundSize: "cover",
+            }
+          : {}),
+      } as React.CSSProperties}
       onMouseEnter={() => !detail && void play()}
       onMouseLeave={() => !detail && pause(true)}
     >
-      <video
-        ref={videoRef}
-        muted={muted}
-        loop
-        playsInline
-        preload="metadata"
-        aria-label={`Video kết quả ${label}`}
-        onPlay={() => setPlaying(true)}
-        onPause={() => setPlaying(false)}
-      >
-        <source src={src} type="video/mp4" />
-      </video>
+      {isFile ? (
+        <video
+          ref={videoRef}
+          muted={muted}
+          loop
+          playsInline
+          preload="metadata"
+          aria-label={`Video kết quả ${label}`}
+          onPlay={() => setPlaying(true)}
+          onPause={() => setPlaying(false)}
+        >
+          <source src={src} />
+        </video>
+      ) : null}
+      {!isFile && playing && source.embedUrl ? (
+        <iframe
+          ref={iframeRef}
+          allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+          allowFullScreen
+          aria-label={`${source.providerLabel}: ${label}`}
+          loading="lazy"
+          src={source.provider === "youtube" ? `${source.embedUrl}&controls=${detail ? "1" : "0"}` : source.embedUrl}
+          title={`${source.providerLabel}: ${label}`}
+        />
+      ) : null}
       <div className="video-vignette" />
-      <span className="video-badge">Video kết quả</span>
+      <span className="video-badge">{source.providerLabel}</span>
       {!playing && (
         <button className="play-button" type="button" onClick={() => void play()} aria-label={`Phát video ${label}`}>
           <span aria-hidden="true">▶</span>
         </button>
       )}
-      {playing && (
+      {playing && (isFile || source.provider === "youtube") && (
         <button
           className="sound-button"
           type="button"
-          onClick={() => setMuted((value) => !value)}
+          onClick={toggleSound}
           aria-label={muted ? "Bật âm thanh" : "Tắt âm thanh"}
         >
           {muted ? "Tắt tiếng" : "Có tiếng"}
@@ -101,7 +152,7 @@ export function VideoPreview({ id, src, label, accent, accentSoft, className = "
       )}
       <div className="video-label">
         <span>{label}</span>
-        <small>{playing ? "Đang phát" : detail ? "Nhấn để xem" : "Di chuột để xem"}</small>
+        <small>{playing ? (source.provider === "instagram" ? "Chạm để phát" : "Đang phát") : detail ? "Nhấn để xem" : "Di chuột để xem"}</small>
       </div>
     </div>
   );

@@ -42,6 +42,15 @@ Các route thanh toán hiện là điểm nối an toàn, cố ý trả `501` ch
 - `lib/types.ts`: Kiểu dữ liệu dùng chung.
 - `public/demo/`: Video demo cục bộ; khi chạy thật thay URL Cloudflare Stream/YouTube.
 
+## Nguồn video thành phẩm
+
+- File video trực tiếp qua URL HTTPS, gồm MP4 và các định dạng trình duyệt hỗ trợ.
+- YouTube: link `watch`, `youtu.be`, `shorts`, `live` hoặc `embed`.
+- Facebook: link video, Watch hoặc Reel công khai cho phép nhúng.
+- Instagram: link Post, Reel hoặc TV công khai; Instagram có thể yêu cầu người xem chạm phát.
+
+Trình phát chỉ kích hoạt một video tự động tại một thời điểm. File trực tiếp, YouTube và Facebook phát tắt tiếng khi hover/cuộn tới; Instagram dùng trình phát nhúng của nền tảng.
+
 ## Luồng đơn hàng dự kiến
 
 `PENDING` → `PAID` → `DELIVERY_QUEUED` → `DELIVERED`

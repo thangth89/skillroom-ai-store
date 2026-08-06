@@ -101,13 +101,13 @@ export function AdminSkillForm({ skill }: { skill?: SkillRecord }) {
       <section className="admin-form-section">
         <div className="admin-form-heading">
           <span>VIDEO VÀ FILE GIAO</span>
-          <p>Video dùng URL HTTPS; file Skill được giữ trong bucket riêng tư.</p>
+          <p>Hỗ trợ MP4 trực tiếp, YouTube, Facebook và Instagram.</p>
         </div>
         <div className="admin-form-grid">
           <label className="wide-field">
             <span>URL video thành phẩm</span>
-            <input defaultValue={skill?.video_url ?? ""} name="video_url" placeholder="https://..." type="url" />
-            <small>Không tải video vào Next.js hoặc bucket file Skill.</small>
+            <input defaultValue={skill?.video_url ?? ""} name="video_url" placeholder="https://youtu.be/... hoặc https://.../video.mp4" type="url" />
+            <small>Nhận link MP4, YouTube, Facebook Video/Reel hoặc Instagram Post/Reel công khai.</small>
           </label>
           <label className="wide-field">
             <span>{skill?.file_path ? "Thay file Skill" : "File Skill"}</span>
