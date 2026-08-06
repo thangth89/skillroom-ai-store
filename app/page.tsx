@@ -2,10 +2,12 @@ import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { SkillGrid } from "@/components/skill-grid";
-import { getSkillsPage } from "@/lib/skills";
+import { getCatalogPage } from "@/lib/catalog";
 
-export default function Home() {
-  const catalog = getSkillsPage(1);
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
+  const catalog = await getCatalogPage(1);
   return (
     <>
       <SiteHeader />
@@ -36,7 +38,7 @@ export default function Home() {
             <SkillGrid items={catalog.items} />
             <div className="catalog-more">
               <div><strong>{catalog.total} Skill</strong><span>đang có trong kho</span></div>
-              <Link className="secondary-button light" href="/skills?page=2">Xem trang tiếp theo <span>→</span></Link>
+              <Link className="secondary-button light" href={catalog.pages > 1 ? "/skills?page=2" : "/skills"}>{catalog.pages > 1 ? "Xem trang tiếp theo" : "Mở kho Skill"} <span>→</span></Link>
             </div>
           </div>
         </section>

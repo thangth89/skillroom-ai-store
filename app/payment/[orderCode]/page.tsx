@@ -2,11 +2,14 @@ import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { formatVnd } from "@/lib/format";
-import { getSkill } from "@/lib/skills";
+import { getCatalogSkillOrFirst } from "@/lib/catalog";
+
+export const dynamic = "force-dynamic";
 
 export default async function PaymentPage({ params, searchParams }: { params: Promise<{ orderCode: string }>; searchParams: Promise<{ skill?: string; email?: string }> }) {
   const [{ orderCode }, query] = await Promise.all([params, searchParams]);
-  const skill = getSkill(query.skill || "") ?? getSkill("nature-aquascape-v22")!;
+  const skill = await getCatalogSkillOrFirst(query.skill || "");
+  if (!skill) return null;
   return (
     <><SiteHeader /><main className="payment-page shell">
       <section className="payment-card">

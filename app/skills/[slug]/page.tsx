@@ -4,13 +4,13 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { VideoPreview } from "@/components/video-preview";
 import { formatVnd } from "@/lib/format";
-import { getSkill, skills } from "@/lib/skills";
+import { getCatalogSkill } from "@/lib/catalog";
 
-export function generateStaticParams() { return skills.map((skill) => ({ slug: skill.slug })); }
+export const dynamic = "force-dynamic";
 
 export default async function SkillDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const skill = getSkill(slug);
+  const skill = await getCatalogSkill(slug);
   if (!skill) notFound();
   return (
     <><SiteHeader /><main>

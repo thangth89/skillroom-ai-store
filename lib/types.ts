@@ -1,4 +1,4 @@
-export type SkillCategory = "Aquascape" | "Automotive" | "Product Video";
+export type SkillCategory = string;
 
 export type SkillProduct = {
   slug: string;

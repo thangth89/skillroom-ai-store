@@ -2,13 +2,14 @@ import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { SkillGrid } from "@/components/skill-grid";
-import { getSkillsPage } from "@/lib/skills";
+import { getCatalogPage } from "@/lib/catalog";
 
 export const metadata = { title: "Kho Skill" };
+export const dynamic = "force-dynamic";
 
 export default async function SkillsPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
   const query = await searchParams;
-  const catalog = getSkillsPage(Number(query.page) || 1);
+  const catalog = await getCatalogPage(Number(query.page) || 1);
   return (
     <><SiteHeader /><main>
       <section className="page-hero shell">

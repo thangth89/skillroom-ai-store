@@ -229,6 +229,10 @@ export async function createSkill(
 
   revalidatePath("/admin");
   revalidatePath("/admin/skills");
+  revalidatePath("/");
+  revalidatePath("/skills");
+  revalidatePath(`/skills/${parsed.data.slug}`);
+  revalidatePath(`/checkout/${parsed.data.slug}`);
   redirect(`/admin/skills/${data.id}?created=1`);
 }
 
@@ -255,9 +259,9 @@ export async function updateSkill(
   const supabase = createAdminClient();
   const { data: current, error: currentError } = await supabase
     .from("skills")
-    .select("file_path")
+    .select("file_path, slug")
     .eq("id", id)
-    .maybeSingle<{ file_path: string | null }>();
+    .maybeSingle<{ file_path: string | null; slug: string }>();
 
   if (currentError || !current) return { error: "Không tìm thấy Skill cần cập nhật." };
 
@@ -291,5 +295,11 @@ export async function updateSkill(
   revalidatePath("/admin");
   revalidatePath("/admin/skills");
   revalidatePath(`/admin/skills/${id}`);
+  revalidatePath("/");
+  revalidatePath("/skills");
+  revalidatePath(`/skills/${current.slug}`);
+  revalidatePath(`/skills/${parsed.data.slug}`);
+  revalidatePath(`/checkout/${current.slug}`);
+  revalidatePath(`/checkout/${parsed.data.slug}`);
   redirect(`/admin/skills/${id}?saved=1`);
 }
