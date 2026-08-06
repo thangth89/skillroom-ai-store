@@ -8,8 +8,9 @@ export function CheckoutForm({ slug }: { slug: string }) {
   const [email, setEmail] = useState("");
   const [agreed, setAgreed] = useState(false);
   const [error, setError] = useState("");
+  const [pending, setPending] = useState(false);
 
-  function submit(event: React.FormEvent<HTMLFormElement>) {
+  async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!/^\S+@\S+\.\S+$/.test(email)) {
       setError("Vui lòng nhập đúng địa chỉ email nhận Skill.");
@@ -19,8 +20,25 @@ export function CheckoutForm({ slug }: { slug: string }) {
       setError("Bạn cần đồng ý với điều khoản sản phẩm số.");
       return;
     }
-    const orderCode = `SK${Date.now().toString().slice(-8)}`;
-    router.push(`/payment/${orderCode}?skill=${encodeURIComponent(slug)}&email=${encodeURIComponent(email)}`);
+    setPending(true);
+    setError("");
+    try {
+      const response = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, slug }),
+      });
+      const data = (await response.json()) as { orderCode?: string; error?: string };
+      if (!response.ok || !data.orderCode) {
+        setError(data.error || "Không thể tạo đơn hàng. Vui lòng thử lại.");
+        return;
+      }
+      router.push(`/payment/${encodeURIComponent(data.orderCode)}`);
+    } catch {
+      setError("Không thể kết nối máy chủ. Vui lòng kiểm tra mạng và thử lại.");
+    } finally {
+      setPending(false);
+    }
   }
 
   return (
@@ -41,7 +59,7 @@ export function CheckoutForm({ slug }: { slug: string }) {
         <span>Tôi đã kiểm tra email và đồng ý với điều khoản sử dụng Skill.</span>
       </label>
       {error && <p className="form-error" role="alert">{error}</p>}
-      <button className="primary-button full-button" type="submit">Tiếp tục thanh toán <span>→</span></button>
+      <button className="primary-button full-button" disabled={pending} type="submit">{pending ? "Đang tạo mã QR…" : "Tiếp tục thanh toán"} <span>→</span></button>
       <p className="secure-note">Thanh toán VietQR qua payOS • Tiền chuyển trực tiếp tới tài khoản của cửa hàng</p>
     </form>
   );

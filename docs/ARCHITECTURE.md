@@ -51,11 +51,13 @@ Các route thanh toán hiện là điểm nối an toàn, cố ý trả `501` ch
 
 Trình phát chỉ kích hoạt một video tự động tại một thời điểm. File trực tiếp, YouTube và Facebook phát tắt tiếng khi hover/cuộn tới; Instagram dùng trình phát nhúng của nền tảng.
 
-## Luồng đơn hàng dự kiến
+## Luồng đơn hàng
 
 `PENDING` → `PAID` → `DELIVERY_QUEUED` → `DELIVERED`
 
 Trạng thái lỗi: `EXPIRED`, `PAYMENT_MISMATCH`, `DELIVERY_FAILED`, `REFUNDED`.
+
+`POST /api/orders` chỉ nhận slug Skill và email, sau đó đọc lại giá/file từ Supabase, tạo snapshot `order_items` và gọi SDK payOS. Trang thành công không tin dữ liệu Return URL; chỉ hiển thị xác nhận khi bảng `orders` đã được webhook có chữ ký hợp lệ chuyển sang `paid` và số tiền khớp chính xác.
 
 ## Trạng thái quản lý Skill
 
