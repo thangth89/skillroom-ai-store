@@ -2,6 +2,7 @@ import { AdminShell } from "@/components/admin-shell";
 import { hasEmailDeliveryConfig } from "@/lib/delivery";
 import { hasPayOSConfig } from "@/lib/payos";
 import { hasAdminDataConfig, requireAdmin } from "@/lib/supabase/admin";
+import { headers } from "next/headers";
 
 export const dynamic = "force-dynamic";
 
@@ -17,13 +18,25 @@ function getProjectHost() {
   }
 }
 
+async function getSiteUrl() {
+  const configuredUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
+
+  if (configuredUrl) return configuredUrl;
+
+  const requestHeaders = await headers();
+  const host = requestHeaders.get("x-forwarded-host") ?? requestHeaders.get("host");
+  const protocol = requestHeaders.get("x-forwarded-proto") ?? "https";
+
+  return host ? `${protocol}://${host}` : "Chưa xác định tên miền";
+}
+
 export default async function AdminSettingsPage() {
   await requireAdmin();
 
   const payOSReady = hasPayOSConfig();
   const emailReady = hasEmailDeliveryConfig();
   const supabaseReady = hasAdminDataConfig();
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ?? "Tên miền hiện tại";
+  const siteUrl = await getSiteUrl();
   const sender = process.env.EMAIL_FROM ?? "Chưa khai báo EMAIL_FROM";
   const bucket = process.env.SKILL_STORAGE_BUCKET ?? "Chưa khai báo bucket";
 
