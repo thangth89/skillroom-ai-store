@@ -394,6 +394,14 @@ h1, h2, h3, p { text-wrap: pretty; }
 .payment-grid { grid-template-columns: 290px 1fr; gap: 40px; padding-block: 28px; }
 .payment-info dt { font-size: 12px; }
 .payment-info dd { font-size: 13px; }
+.payment-transfer-row { align-items: center; }
+.payment-transfer-value { display: flex; align-items: center; justify-content: flex-end; gap: 10px; }
+.payment-transfer-value code { border-radius: 8px; background: #e9f5e8; padding: 8px 10px; color: #123d24; font-family: var(--font-sans); font-size: 14px; font-weight: 800; letter-spacing: .04em; }
+.payment-transfer-value .copy-value-button { min-height: 34px; padding: 7px 11px; font-size: 10px; }
+.payment-transfer-warning { margin-top: 18px; border: 1px solid #f2b8a8; border-left: 4px solid #d94c2f; border-radius: 12px; background: #fff5f1; padding: 16px 18px; color: #792817; }
+.payment-transfer-warning strong { display: block; font-size: 14px; font-weight: 800; }
+.payment-transfer-warning p { margin-top: 6px; font-size: 12px; line-height: 1.65; }
+.payment-transfer-warning b { color: #52190e; }
 .success-card h1 { font-size: clamp(38px, 5vw, 56px); font-weight: 760; line-height: 1.1; }
 .success-card > p { font-size: 14px; line-height: 1.75; }
 .download-page { background: var(--brand-dark); }
@@ -447,6 +455,14 @@ h1, h2, h3, p { text-wrap: pretty; }
 .table-row a { color: var(--brand); font-size: 11px; }
 .table-head { color: var(--muted); font-size: 10px; }
 .order-email-button { color: var(--brand); font-size: 11px; font-weight: 700; }
+.order-transfer-content { display: block; margin-top: 4px; color: var(--brand) !important; font-weight: 720; letter-spacing: .02em; }
+.admin-order-search { margin-bottom: 20px; border: 1px solid var(--line); border-radius: 13px; background: #f7f9f7; padding: 17px; }
+.admin-order-search > label { display: block; margin-bottom: 9px; color: var(--ink); font-size: 12px; font-weight: 750; }
+.admin-order-search > div { display: grid; grid-template-columns: minmax(220px, 1fr) auto auto; gap: 9px; }
+.admin-order-search input { min-width: 0; min-height: 43px; border: 1px solid #bdc9c0; border-radius: 9px; background: #fff; padding: 0 13px; font-size: 13px; }
+.admin-order-search .primary-button, .admin-order-search .secondary-button { min-height: 43px; padding-inline: 16px; font-size: 11px; }
+.admin-order-search > small { display: block; margin-top: 8px; color: var(--muted); font-size: 10px; line-height: 1.5; }
+.order-search-migration-note { margin-bottom: 16px; border-radius: 9px; background: #eef4e9; padding: 11px 13px; color: #48613c; font-size: 11px; line-height: 1.55; }
 .settings-grid { gap: 15px; }
 .settings-grid .admin-panel { min-height: 270px; }
 .settings-grid h2 { font-size: 21px; font-weight: 750; }
@@ -482,6 +498,12 @@ h1, h2, h3, p { text-wrap: pretty; }
 .order-detail-record { border-color: var(--line); border-radius: 12px; background: #f7f9f7; }
 .order-detail-record strong { font-size: 13px; }
 .order-detail-note { color: var(--muted); font-size: 11px; }
+.order-email-correction { margin-top: 22px; border-top: 1px solid var(--line); padding-top: 20px; }
+.order-email-correction > label { display: block; font-size: 13px; font-weight: 760; }
+.order-email-correction > p { margin-top: 6px; color: var(--muted); font-size: 11px; line-height: 1.6; }
+.order-email-correction > div { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 9px; margin-top: 13px; }
+.order-email-correction input { min-width: 0; min-height: 45px; border: 1px solid #bdc9c0; border-radius: 9px; background: #fff; padding: 0 12px; font-size: 13px; }
+.order-email-correction .primary-button { min-height: 45px; padding-inline: 16px; font-size: 11px; }
 
 /* Admin login */
 .admin-login-page { background: radial-gradient(circle at 50% 0%, rgba(154,246,93,.1), transparent 36%), #10251a; padding: 32px 20px; }
@@ -584,6 +606,8 @@ h1, h2, h3, p { text-wrap: pretty; }
   .payment-heading { align-items: flex-start; flex-direction: column; }
   .payment-heading h1 { font-size: 28px; }
   .payment-grid { grid-template-columns: 1fr; gap: 28px; }
+  .payment-transfer-row { align-items: flex-start; }
+  .payment-transfer-value { align-items: flex-start; flex-direction: column; }
   .success-actions { align-items: stretch; flex-direction: column; }
   .admin-main { padding: 24px 14px 54px; }
   .admin-topbar { align-items: flex-start; }
@@ -603,6 +627,8 @@ h1, h2, h3, p { text-wrap: pretty; }
   .order-detail-overview { grid-template-columns: 1fr; }
   .order-detail-list > div, .order-detail-list.compact > div { grid-template-columns: 1fr; gap: 5px; }
   .order-detail-list dd { text-align: left; }
+  .admin-order-search > div, .order-email-correction > div { grid-template-columns: 1fr; }
+  .admin-order-search .primary-button, .admin-order-search .secondary-button, .order-email-correction .primary-button { width: 100%; }
   .admin-login-card { padding: 30px 23px; }
 }
 
