@@ -11,6 +11,15 @@ function getText(formData: FormData, key: string) {
   return typeof value === "string" ? value.trim() : "";
 }
 
+function getReturnTo(formData: FormData) {
+  const value = getText(formData, "return_to");
+  return /^\/admin\/orders\/[A-Za-z0-9-]+$/.test(value) ? value : "/admin/orders";
+}
+
+function deliveryDestination(path: string, status: string) {
+  return `${path}?delivery=${encodeURIComponent(status)}`;
+}
+
 async function requestOrigin() {
   const requestHeaders = await headers();
   const host = requestHeaders.get("x-forwarded-host") ?? requestHeaders.get("host");
@@ -22,24 +31,26 @@ async function requestOrigin() {
 export async function resendOrderEmail(formData: FormData) {
   await requireAdmin();
   const orderId = getText(formData, "order_id");
+  const returnTo = getReturnTo(formData);
 
   if (!/^[0-9a-f-]{36}$/i.test(orderId)) {
-    redirect("/admin/orders?delivery=invalid");
+    redirect(deliveryDestination(returnTo, "invalid"));
   }
 
-  let destination = "/admin/orders?delivery=sent";
+  let status = "sent";
   try {
     const result = await sendOrderDeliveryEmail({
       orderId,
       origin: await requestOrigin(),
       force: true,
     });
-    if (result.status === "not_configured") destination = "/admin/orders?delivery=config";
+    if (result.status === "not_configured") status = "config";
   } catch (error) {
     console.error("Không thể gửi lại email đơn hàng:", error);
-    destination = "/admin/orders?delivery=error";
+    status = "error";
   }
 
   revalidatePath("/admin/orders");
-  redirect(destination);
+  revalidatePath(returnTo);
+  redirect(deliveryDestination(returnTo, status));
 }
