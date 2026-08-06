@@ -114,5 +114,15 @@ revoke all on public.order_items from anon, authenticated;
 revoke all on public.payments from anon, authenticated;
 revoke all on public.download_tokens from anon, authenticated;
 
+grant usage on schema public to service_role;
+grant select, insert, update, delete on public.skills to service_role;
+grant select, insert, update, delete on public.orders to service_role;
+grant select, insert, update, delete on public.order_items to service_role;
+grant select, insert, update, delete on public.payments to service_role;
+grant select, insert, update, delete on public.download_tokens to service_role;
+
+revoke execute on function public.set_updated_at() from public, anon, authenticated;
+grant execute on function public.set_updated_at() to service_role;
+
 -- Không tạo policy public: ứng dụng chỉ đọc/ghi các bảng này từ server.
--- SUPABASE_SERVICE_ROLE_KEY phải luôn là biến môi trường bí mật phía server.
+-- SUPABASE_SECRET_KEY phải luôn là biến môi trường bí mật phía server.

@@ -5,8 +5,8 @@ Phần đăng nhập quản trị đã có sẵn trong mã nguồn. Hãy hoàn t
 ## 1. Tạo dự án
 
 1. Mở [database.new](https://database.new) và tạo một dự án Supabase.
-2. Trong **Project Settings → API**, sao chép **Project URL** và **Publishable key**.
-3. Không đưa **service_role key** vào biến bắt đầu bằng `NEXT_PUBLIC_`.
+2. Trong **Project Settings → API Keys**, sao chép **Project URL** và **Publishable key**.
+3. Sao chép **Secret key** cho phần xử lý phía server. Không đưa khóa này vào biến bắt đầu bằng `NEXT_PUBLIC_`.
 
 ## 2. Tạo tài khoản admin
 
@@ -28,12 +28,14 @@ Trong **Vercel → Project → Settings → Environment Variables**, thêm:
 ```dotenv
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your-publishable-key
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+SUPABASE_SECRET_KEY=your-secret-key
 ADMIN_EMAILS=your-admin-email@example.com
 SKILL_STORAGE_BUCKET=skills-private
 ```
 
 `ADMIN_EMAILS` có thể chứa nhiều email, ngăn cách bằng dấu phẩy. Email trong biến này phải trùng với tài khoản đã tạo ở bước 2.
+
+`SUPABASE_SECRET_KEY` chỉ được dùng ở phía server và phải bắt đầu bằng `sb_secret_`. Không gửi khóa này qua chat và không commit vào GitHub.
 
 Chọn cả **Production**, **Preview** và **Development** nếu bạn muốn đăng nhập hoạt động ở cả ba môi trường. Sau khi lưu, redeploy dự án để Vercel nhận biến mới.
 
