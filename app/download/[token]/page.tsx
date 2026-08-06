@@ -22,5 +22,5 @@ export default async function DownloadPage({ params }: { params: Promise<{ token
     timeZone: "Asia/Ho_Chi_Minh",
   });
 
-  return <main className="download-page"><section><div className="brand-mark large">S</div><span className="section-index">LIÊN KẾT TẢI BẢO MẬT</span><h1>File Skill của bạn.</h1><p><strong>{access.item.skill_name}</strong> · Phiên bản {access.item.version}<br />Liên kết hết hạn ngày {expiresAt} và còn {access.remaining} lượt tải.</p><a className="primary-button" href={`/api/downloads/${encodeURIComponent(token)}`}>Tải Skill</a><small>File được lấy trực tiếp từ kho riêng tư của Skillroom.</small><Link href="/support">Gặp vấn đề? Liên hệ hỗ trợ →</Link></section></main>;
+  return <main className="download-page"><section><div className="brand-mark large">S</div><span className="section-index">LIÊN KẾT TẢI BẢO MẬT</span><h1>File Skill của bạn.</h1><p><strong>{access.item.skill_name}</strong> · Phiên bản {access.item.version}<br />Liên kết hết hạn ngày {expiresAt} và còn {access.remaining} lượt tải.</p><a className="primary-button inverse" href={`/api/downloads/${encodeURIComponent(token)}`}>Tải Skill</a><small>File được lấy trực tiếp từ kho riêng tư của Skillroom.</small><Link href="/support">Gặp vấn đề? Liên hệ hỗ trợ →</Link></section></main>;
 }
