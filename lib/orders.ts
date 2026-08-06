@@ -13,6 +13,7 @@ export type StoreOrder = {
   subtotal: number;
   total: number;
   payos_order_code: number | null;
+  transfer_content: string | null;
   payos_payment_link_id: string | null;
   checkout_url: string | null;
   qr_code_data: string | null;
@@ -20,6 +21,17 @@ export type StoreOrder = {
   created_at: string;
   updated_at: string;
 };
+
+export function getOrderTransferContent(
+  order: Pick<StoreOrder, "payos_order_code" | "transfer_content">,
+) {
+  if (order.transfer_content?.trim()) {
+    return order.transfer_content.trim().toUpperCase();
+  }
+
+  if (!order.payos_order_code) return "";
+  return `SK${String(order.payos_order_code).slice(-12)}`;
+}
 
 export type StoreOrderItem = {
   id: string;
