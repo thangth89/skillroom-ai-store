@@ -1,4 +1,5 @@
 import type { Webhook } from "@payos/node";
+import { sendOrderDeliveryEmail } from "@/lib/delivery";
 import { createAdminClient, hasAdminDataConfig } from "@/lib/supabase/admin";
 import { getPayOSClient, hasPayOSConfig } from "@/lib/payos";
 
@@ -65,21 +66,35 @@ export async function POST(request: Request) {
       return Response.json({ success: false }, { status: 500 });
     }
 
-    if (paymentStatus !== "PAID" || order.status === "paid") {
+    if (paymentStatus !== "PAID" || order.status === "refunded") {
       return Response.json({ success: true });
     }
 
-    const { error: updateError } = await supabase
-      .from("orders")
-      .update({
-        status: "paid",
-        paid_at: new Date().toISOString(),
-        payos_payment_link_id: verified.paymentLinkId,
-      })
-      .eq("id", order.id)
-      .neq("status", "refunded");
+    if (order.status !== "paid") {
+      const { error: updateError } = await supabase
+        .from("orders")
+        .update({
+          status: "paid",
+          paid_at: new Date().toISOString(),
+          payos_payment_link_id: verified.paymentLinkId,
+        })
+        .eq("id", order.id)
+        .neq("status", "refunded");
 
-    if (updateError) return Response.json({ success: false }, { status: 500 });
+      if (updateError) return Response.json({ success: false }, { status: 500 });
+    }
+
+    try {
+      await sendOrderDeliveryEmail({
+        orderId: order.id,
+        origin: new URL(request.url).origin,
+      });
+    } catch (error) {
+      console.error("Không thể bàn giao Skill qua email:", error);
+      // Trả 500 để payOS thử gửi lại webhook; Resend chống gửi trùng bằng idempotency key.
+      return Response.json({ success: false }, { status: 500 });
+    }
+
     return Response.json({ success: true });
   } catch {
     return Response.json({ success: false }, { status: 400 });
