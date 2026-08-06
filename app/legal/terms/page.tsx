@@ -1,0 +1,4 @@
+import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
+
+export default function TermsPage() { return <><SiteHeader /><main className="legal-page shell"><span className="section-index">PHÁP LÝ</span><h1>Điều khoản sử dụng.</h1><section><h2>Quyền sử dụng</h2><p>Mỗi đơn hàng cấp quyền sử dụng Skill cho người mua theo phạm vi công bố tại trang sản phẩm. Không được bán lại, chia sẻ công khai hoặc phát hành lại file Skill.</p><h2>Sản phẩm số</h2><p>Khách hàng có trách nhiệm kiểm tra mô tả, yêu cầu công cụ và địa chỉ email trước khi thanh toán. Chính sách hoàn tiền sẽ được áp dụng theo trạng thái bàn giao và lỗi kỹ thuật được xác minh.</p><h2>Thanh toán</h2><p>Đơn hàng chỉ được xác nhận khi hệ thống nhận webhook hợp lệ từ đối tác thanh toán và đối chiếu đúng số tiền, mã đơn.</p></section></main><SiteFooter /></>; }

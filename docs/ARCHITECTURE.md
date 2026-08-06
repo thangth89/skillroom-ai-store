@@ -1,0 +1,47 @@
+# Skillroom — cấu trúc website
+
+## Nhóm trang công khai
+
+- `/`: Trang cửa hàng, hero và 9 Skill đầu tiên.
+- `/skills`: Kho Skill, phân trang 9 sản phẩm.
+- `/skills/[slug]`: Video lớn, mô tả, nội dung bàn giao, yêu cầu và nút mua.
+- `/support`: Hướng dẫn mua và sử dụng.
+- `/legal/terms`, `/legal/privacy`: Điều khoản và quyền riêng tư.
+
+## Nhóm mua hàng
+
+- `/checkout/[slug]`: Thu email, xác nhận điều khoản và tóm tắt đơn.
+- `/payment/[orderCode]`: Vị trí QR payOS, trạng thái chờ webhook.
+- `/payment/success`: Xác nhận đơn và hướng dẫn kiểm tra email.
+- `/download/[token]`: Kiểm tra link tải có hạn trước khi trả file.
+
+## Nhóm quản trị
+
+- `/admin`: Chỉ số và trạng thái các tích hợp.
+- `/admin/skills`: Thêm, sửa, ẩn và xem Skill.
+- `/admin/orders`: Theo dõi đơn, thanh toán và trạng thái email.
+- `/admin/settings`: Cấu hình payOS, Resend và Supabase.
+
+Khi đưa vào vận hành, toàn bộ `/admin/*` phải yêu cầu đăng nhập.
+
+## API
+
+- `POST /api/orders`: Xác thực email, tạo đơn ở Supabase, gọi payOS và trả dữ liệu QR.
+- `POST /api/payments/payos/webhook`: Xác minh chữ ký, đối chiếu mã đơn/số tiền, đánh dấu `PAID` và lên lịch gửi email.
+- `GET /api/health`: Kiểm tra dịch vụ.
+
+Các route thanh toán hiện là điểm nối an toàn, cố ý trả `501` cho tới khi có khóa thật.
+
+## Tổ chức mã nguồn
+
+- `app/`: Route và bố cục từng trang.
+- `components/`: Thành phần giao diện dùng lại.
+- `lib/skills.ts`: Dữ liệu demo; sau này thay bằng repository đọc Supabase.
+- `lib/types.ts`: Kiểu dữ liệu dùng chung.
+- `public/demo/`: Video demo cục bộ; khi chạy thật thay URL Cloudflare Stream/YouTube.
+
+## Luồng đơn hàng dự kiến
+
+`PENDING` → `PAID` → `DELIVERY_QUEUED` → `DELIVERED`
+
+Trạng thái lỗi: `EXPIRED`, `PAYMENT_MISMATCH`, `DELIVERY_FAILED`, `REFUNDED`.
