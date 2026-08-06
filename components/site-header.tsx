@@ -11,7 +11,6 @@ export function SiteHeader() {
         <nav className="main-nav" aria-label="Điều hướng chính">
           <Link href="/skills">Kho Skill</Link>
           <Link href="/support">Hướng dẫn</Link>
-          <Link href="/admin">Quản trị</Link>
         </nav>
         <Link className="header-cta" href="/skills">
           Khám phá Skill <span aria-hidden="true">→</span>
