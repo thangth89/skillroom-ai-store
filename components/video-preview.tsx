@@ -14,9 +14,9 @@ type VideoPreviewProps = {
 };
 
 export function VideoPreview({ id, src, label, accent, accentSoft, className = "", detail = false }: VideoPreviewProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [activated, setActivated] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(true);
   const source = useMemo(() => parseVideoSource(src), [src]);
@@ -24,6 +24,7 @@ export function VideoPreview({ id, src, label, accent, accentSoft, className = "
 
   const pause = (reset = false) => {
     if (!isFile) {
+      setActivated(false);
       setPlaying(false);
       setMuted(true);
       return;
@@ -38,6 +39,12 @@ export function VideoPreview({ id, src, label, accent, accentSoft, className = "
 
   const play = async () => {
     window.dispatchEvent(new CustomEvent("skill-preview-play", { detail: id }));
+
+    if (!activated) {
+      setActivated(true);
+      setPlaying(true);
+      return;
+    }
 
     if (!isFile) {
       setPlaying(true);
@@ -76,23 +83,15 @@ export function VideoPreview({ id, src, label, accent, accentSoft, className = "
   }, [id]);
 
   useEffect(() => {
-    const container = containerRef.current;
-    if (!container || detail || !window.matchMedia("(pointer: coarse)").matches) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.intersectionRatio >= 0.6) void play();
-        else pause(false);
-      },
-      { threshold: [0, 0.35, 0.6, 0.85] },
-    );
-    observer.observe(container);
-    return () => observer.disconnect();
-  }, [detail, id]);
+    if (!activated || !isFile) return;
+    const video = videoRef.current;
+    if (!video) return;
+    video.play().then(() => setPlaying(true)).catch(() => setPlaying(false));
+  }, [activated, isFile]);
 
   return (
     <div
-      ref={containerRef}
+      data-active={activated ? "true" : "false"}
       className={`video-frame ${detail ? "video-frame-detail" : ""} ${className}`}
       style={{
         "--accent": accent,
@@ -105,24 +104,23 @@ export function VideoPreview({ id, src, label, accent, accentSoft, className = "
             }
           : {}),
       } as React.CSSProperties}
-      onMouseEnter={() => !detail && void play()}
-      onMouseLeave={() => !detail && pause(true)}
     >
-      {isFile ? (
+      {isFile && activated ? (
         <video
           ref={videoRef}
           muted={muted}
-          loop
+          controls
           playsInline
-          preload="metadata"
+          preload="none"
           aria-label={`Video kết quả ${label}`}
           onPlay={() => setPlaying(true)}
           onPause={() => setPlaying(false)}
+          onEnded={() => setPlaying(false)}
         >
           <source src={src} />
         </video>
       ) : null}
-      {!isFile && playing && source.embedUrl ? (
+      {!isFile && activated && source.embedUrl ? (
         <iframe
           ref={iframeRef}
           allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
@@ -137,7 +135,7 @@ export function VideoPreview({ id, src, label, accent, accentSoft, className = "
       <span className="video-badge">{source.providerLabel}</span>
       {!playing && (
         <button className="play-button" type="button" onClick={() => void play()} aria-label={`Phát video ${label}`}>
-          <span aria-hidden="true">▶</span>
+          <span aria-hidden="true">▶</span><b>Xem video</b>
         </button>
       )}
       {playing && (isFile || source.provider === "youtube") && (
@@ -152,7 +150,7 @@ export function VideoPreview({ id, src, label, accent, accentSoft, className = "
       )}
       <div className="video-label">
         <span>{label}</span>
-        <small>{playing ? (source.provider === "instagram" ? "Chạm để phát" : "Đang phát") : detail ? "Nhấn để xem" : "Di chuột để xem"}</small>
+        <small>{playing ? (source.provider === "instagram" ? "Chạm để phát" : "Đang phát") : "Bấm để xem"}</small>
       </div>
     </div>
   );
