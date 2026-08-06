@@ -22,6 +22,18 @@ function createPayOSOrderCode() {
   return Date.now() * 100 + Math.floor(Math.random() * 100);
 }
 
+function transferContentFromPayOSOrderCode(orderCode: number) {
+  return `SK${String(orderCode).slice(-12)}`;
+}
+
+function missingTransferContentColumn(error: { code?: string; message?: string } | null) {
+  return (
+    error?.code === "PGRST204" ||
+    error?.code === "42703" ||
+    error?.message?.includes("transfer_content") === true
+  );
+}
+
 function siteOrigin(request: Request) {
   const configured = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
   return configured || new URL(request.url).origin;
@@ -68,11 +80,17 @@ export async function POST(request: Request) {
     return Response.json({ error: "Skill này chưa sẵn sàng để thanh toán." }, { status: 404 });
   }
 
-  let order: { id: string; order_code: string; payos_order_code: number } | null = null;
+  let order: {
+    id: string;
+    order_code: string;
+    payos_order_code: number;
+    transfer_content: string;
+  } | null = null;
   for (let attempt = 0; attempt < 3 && !order; attempt += 1) {
     const payosOrderCode = createPayOSOrderCode();
     const orderCode = `SK-${crypto.randomUUID().replace(/-/g, "").slice(0, 16).toUpperCase()}`;
-    const { data, error } = await supabase
+    const transferContent = transferContentFromPayOSOrderCode(payosOrderCode);
+    let { data, error } = await supabase
       .from("orders")
       .insert({
         order_code: orderCode,
@@ -82,9 +100,37 @@ export async function POST(request: Request) {
         subtotal: skill.price,
         total: skill.price,
         payos_order_code: payosOrderCode,
+        transfer_content: transferContent,
       })
-      .select("id, order_code, payos_order_code")
-      .single<{ id: string; order_code: string; payos_order_code: number }>();
+      .select("id, order_code, payos_order_code, transfer_content")
+      .single<{
+        id: string;
+        order_code: string;
+        payos_order_code: number;
+        transfer_content: string;
+      }>();
+
+    // Giữ checkout hoạt động trong lúc chủ cửa hàng chưa chạy migration mới.
+    if (missingTransferContentColumn(error)) {
+      const fallback = await supabase
+        .from("orders")
+        .insert({
+          order_code: orderCode,
+          customer_email: email,
+          status: "pending",
+          currency: "VND",
+          subtotal: skill.price,
+          total: skill.price,
+          payos_order_code: payosOrderCode,
+        })
+        .select("id, order_code, payos_order_code")
+        .single<{ id: string; order_code: string; payos_order_code: number }>();
+
+      data = fallback.data
+        ? { ...fallback.data, transfer_content: transferContent }
+        : null;
+      error = fallback.error;
+    }
 
     if (!error && data) order = data;
     else if (error?.code !== "23505") {
@@ -121,7 +167,7 @@ export async function POST(request: Request) {
     const paymentLink = await getPayOSClient().paymentRequests.create({
       orderCode: order.payos_order_code,
       amount: skill.price,
-      description: `SK${String(order.payos_order_code).slice(-12)}`,
+      description: order.transfer_content,
       buyerEmail: email,
       items: [{ name: skill.name.slice(0, 100), quantity: 1, price: skill.price }],
       cancelUrl,
