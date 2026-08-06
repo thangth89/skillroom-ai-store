@@ -19,7 +19,7 @@
 
 - `/admin`: Chỉ số và trạng thái các tích hợp.
 - `/admin/skills`: Thêm, sửa, ẩn và xem Skill.
-- `/admin/orders`: Theo dõi đơn, thanh toán và trạng thái email.
+- `/admin/orders`: Theo dõi đơn, tìm theo nội dung chuyển khoản/mã/email và mở chi tiết để xử lý hỗ trợ.
 - `/admin/settings`: Cấu hình payOS, Resend và Supabase.
 
 Khi đưa vào vận hành, toàn bộ `/admin/*` phải yêu cầu đăng nhập.
@@ -49,7 +49,7 @@ Các route thanh toán hiện là điểm nối an toàn, cố ý trả `501` ch
 - Facebook: link video, Watch hoặc Reel công khai cho phép nhúng.
 - Instagram: link Post, Reel hoặc TV công khai; Instagram có thể yêu cầu người xem chạm phát.
 
-Trình phát chỉ kích hoạt một video tự động tại một thời điểm. File trực tiếp, YouTube và Facebook phát tắt tiếng khi hover/cuộn tới; Instagram dùng trình phát nhúng của nền tảng.
+Trình phát chỉ tải và phát video sau khi người xem chủ động bấm nút xem, giúp giảm băng thông. Instagram dùng trình phát nhúng của nền tảng.
 
 ## Luồng đơn hàng
 
@@ -58,6 +58,8 @@ Trình phát chỉ kích hoạt một video tự động tại một thời đi�
 Trạng thái lỗi: `EXPIRED`, `PAYMENT_MISMATCH`, `DELIVERY_FAILED`, `REFUNDED`.
 
 `POST /api/orders` chỉ nhận slug Skill và email, sau đó đọc lại giá/file từ Supabase, tạo snapshot `order_items` và gọi SDK payOS. Trang thành công không tin dữ liệu Return URL; chỉ hiển thị xác nhận khi bảng `orders` đã được webhook có chữ ký hợp lệ chuyển sang `paid` và số tiền khớp chính xác.
+
+Mỗi đơn lưu riêng nội dung chuyển khoản `SK...` đã gửi sang payOS. Khách phải giữ nguyên nội dung này. Admin có thể dùng nội dung trên sao kê để tìm lại đơn khi khách nhập sai email; thao tác sửa email sẽ thu hồi toàn bộ link tải cũ trước khi cấp link mới và gửi lại qua Resend.
 
 ## Trạng thái quản lý Skill
 
