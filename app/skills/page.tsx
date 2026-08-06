@@ -13,12 +13,12 @@ export default async function SkillsPage({ searchParams }: { searchParams: Promi
   return (
     <><SiteHeader /><main>
       <section className="page-hero shell">
-        <span className="section-index">KHO SKILL / TRANG {catalog.page}</span>
-        <h1>Chọn bằng <em>kết quả.</em></h1>
-        <p>{catalog.total} Skill được phân nhóm rõ ràng. Mỗi trang hiển thị tối đa 9 sản phẩm để giữ tốc độ tải nhanh.</p>
+        <span className="section-index">KHO SKILL • TRANG {catalog.page}</span>
+        <h1>Tìm đúng Skill cho công việc của bạn.</h1>
+        <p>Khám phá {catalog.total} Skill được phân nhóm rõ ràng, có video kết quả và thông tin sử dụng trước khi mua.</p>
       </section>
       <section className="catalog-section inner-catalog"><div className="shell">
-        <div className="catalog-toolbar"><span>{catalog.total} sản phẩm</span><span>3 cột × 3 hàng</span></div>
+        <div className="catalog-toolbar"><span>{catalog.total} sản phẩm</span><span>Tối đa 9 sản phẩm mỗi trang</span></div>
         <SkillGrid items={catalog.items} />
         <nav className="pagination" aria-label="Phân trang">
           <Link className={catalog.page === 1 ? "disabled" : ""} href={`/skills?page=${Math.max(1, catalog.page - 1)}`}>← Trước</Link>
