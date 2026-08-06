@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { resendOrderEmail } from "@/app/admin/orders/actions";
+import { resendOrderEmail, updateOrderEmailAndResend } from "@/app/admin/orders/actions";
 import { AdminShell } from "@/components/admin-shell";
 import { CopyValueButton } from "@/components/copy-value-button";
 import {
@@ -10,7 +10,7 @@ import {
 import { hasEmailDeliveryConfig } from "@/lib/delivery";
 import { DOWNLOAD_LIMIT } from "@/lib/downloads";
 import { formatVnd } from "@/lib/format";
-import type { OrderStatus } from "@/lib/orders";
+import { getOrderTransferContent, type OrderStatus } from "@/lib/orders";
 import { requireAdmin } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
@@ -66,6 +66,7 @@ export default async function AdminOrderDetailPage({
   const { order, items, payments, tokens, error } = details;
   const emailReady = hasEmailDeliveryConfig();
   const returnTo = `/admin/orders/${encodeURIComponent(order.order_code)}`;
+  const transferContent = getOrderTransferContent(order);
   const amountMismatch = payments.some((payment) =>
     payment.status.toUpperCase().includes("MISMATCH"),
   );
@@ -85,6 +86,9 @@ export default async function AdminOrderDetailPage({
         <div className="order-detail-actions">
           <CopyValueButton label="Sao chép mã đơn" value={order.order_code} />
           <CopyValueButton label="Sao chép email" value={order.customer_email} />
+          {transferContent ? (
+            <CopyValueButton label="Sao chép nội dung CK" value={transferContent} />
+          ) : null}
           <a className="secondary-button" href={`mailto:${order.customer_email}`}>
             Gửi email hỗ trợ
           </a>
@@ -127,6 +131,35 @@ export default async function AdminOrderDetailPage({
       ) : null}
       {query.delivery === "invalid" ? (
         <div className="admin-form-error">Mã đơn hàng không hợp lệ.</div>
+      ) : null}
+      {query.delivery === "corrected" ? (
+        <div className="admin-form-success">
+          Đã cập nhật email, thu hồi các link tải cũ và gửi link mới đến {order.customer_email}.
+        </div>
+      ) : null}
+      {query.delivery === "email_invalid" ? (
+        <div className="admin-form-error">Email mới hoặc mã đơn không hợp lệ.</div>
+      ) : null}
+      {query.delivery === "email_update_error" ? (
+        <div className="admin-form-error">Không thể cập nhật email của đơn hàng.</div>
+      ) : null}
+      {query.delivery === "not_paid" ? (
+        <div className="admin-form-error">Chỉ sửa email và cấp lại link cho đơn đã thanh toán.</div>
+      ) : null}
+      {query.delivery === "security_error" ? (
+        <div className="admin-form-error">
+          Email đã được sửa nhưng chưa thể thu hồi link cũ. Không gửi lại file trước khi kiểm tra Supabase.
+        </div>
+      ) : null}
+      {query.delivery === "email_saved_config" ? (
+        <div className="admin-form-error">
+          Email đã được sửa và link cũ đã thu hồi, nhưng Vercel chưa cấu hình Resend.
+        </div>
+      ) : null}
+      {query.delivery === "email_saved_error" ? (
+        <div className="admin-form-error">
+          Email đã được sửa và link cũ đã thu hồi, nhưng chưa gửi được email mới. Kiểm tra Resend Logs rồi bấm gửi lại.
+        </div>
       ) : null}
       {error ? (
         <div className="admin-form-error">Một phần dữ liệu chưa đọc được: {error.message}</div>
@@ -191,10 +224,37 @@ export default async function AdminOrderDetailPage({
               <dd>{order.payos_order_code ?? "Chưa có"}</dd>
             </div>
             <div>
+              <dt>Nội dung chuyển khoản</dt>
+              <dd>{transferContent || "Chưa có"}</dd>
+            </div>
+            <div>
               <dt>Payment Link ID</dt>
               <dd className="break-value">{order.payos_payment_link_id ?? "Chưa có"}</dd>
             </div>
           </dl>
+          {order.status === "paid" ? (
+            <form action={updateOrderEmailAndResend} className="order-email-correction">
+              <input name="order_id" type="hidden" value={order.id} />
+              <input name="return_to" type="hidden" value={returnTo} />
+              <label htmlFor="correct-order-email">Sửa email khách hàng</label>
+              <p>
+                Chỉ thực hiện sau khi đã đối chiếu nội dung chuyển khoản hoặc biên lai. Hệ thống
+                sẽ thu hồi toàn bộ link cũ trước khi gửi link mới.
+              </p>
+              <div>
+                <input
+                  defaultValue={order.customer_email}
+                  id="correct-order-email"
+                  name="customer_email"
+                  required
+                  type="email"
+                />
+                <button className="primary-button" disabled={!emailReady} type="submit">
+                  {emailReady ? "Cập nhật & gửi lại" : "Chưa cấu hình email"}
+                </button>
+              </div>
+            </form>
+          ) : null}
         </article>
 
         <article className="admin-panel">
