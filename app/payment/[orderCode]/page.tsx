@@ -4,8 +4,9 @@ import QRCode from "qrcode";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { PaymentStatus } from "@/components/payment-status";
+import { CopyValueButton } from "@/components/copy-value-button";
 import { formatVnd, maskEmail } from "@/lib/format";
-import { getStoreOrder } from "@/lib/orders";
+import { getOrderTransferContent, getStoreOrder } from "@/lib/orders";
 
 export const dynamic = "force-dynamic";
 
@@ -32,6 +33,7 @@ export default async function PaymentPage({
 
   const qrImage = await createQrImage(order.qr_code_data);
   const canPay = order.status === "pending";
+  const transferContent = getOrderTransferContent(order);
 
   return (
     <><SiteHeader /><main className="payment-page shell">
@@ -41,9 +43,39 @@ export default async function PaymentPage({
         <div className="payment-grid">
           <div className="qr-placeholder">
             {qrImage && canPay ? <img className="payment-qr-image" src={qrImage} alt={`Mã VietQR cho đơn ${order.order_code}`} /> : <div className="qr-unavailable">QR không còn khả dụng</div>}
-            <small>Mã VietQR riêng cho đơn {order.order_code}</small>
+            <small>Mã VietQR đã điền sẵn số tiền và nội dung chuyển khoản.</small>
           </div>
-          <div className="payment-info"><dl><div><dt>Mã đơn</dt><dd>{order.order_code}</dd></div><div><dt>Sản phẩm</dt><dd>{item.skill_name}</dd></div><div><dt>Số tiền</dt><dd>{formatVnd(order.total)}</dd></div><div><dt>Gửi tới</dt><dd>{maskEmail(order.customer_email)}</dd></div></dl><div className="payment-note"><strong>Chỉ chuyển đúng số tiền trong QR</strong><p>Trang sẽ tự cập nhật sau khi webhook payOS xác nhận giao dịch.</p></div>{order.checkout_url && canPay ? <a className="secondary-button full-button payos-link" href={order.checkout_url} target="_blank" rel="noreferrer">Mở trang thanh toán payOS ↗</a> : null}</div>
+          <div className="payment-info">
+            <dl>
+              <div><dt>Mã đơn</dt><dd>{order.order_code}</dd></div>
+              <div><dt>Sản phẩm</dt><dd>{item.skill_name}</dd></div>
+              <div><dt>Số tiền</dt><dd>{formatVnd(order.total)}</dd></div>
+              <div><dt>Gửi tới</dt><dd>{maskEmail(order.customer_email)}</dd></div>
+              <div className="payment-transfer-row">
+                <dt>Nội dung bắt buộc</dt>
+                <dd className="payment-transfer-value">
+                  <code>{transferContent}</code>
+                  {transferContent ? (
+                    <CopyValueButton
+                      copiedLabel="Đã chép nội dung"
+                      label="Sao chép"
+                      value={transferContent}
+                    />
+                  ) : null}
+                </dd>
+              </div>
+            </dl>
+            <div className="payment-transfer-warning" role="alert">
+              <strong>Không được thay đổi nội dung chuyển khoản</strong>
+              <p>
+                Giữ nguyên chính xác <b>{transferContent}</b>. Không sửa, xóa hoặc thêm bất kỳ
+                ký tự nào; nếu nội dung thay đổi, hệ thống có thể không nhận diện được đơn và
+                không gửi Skill tự động.
+              </p>
+            </div>
+            <div className="payment-note"><strong>Chỉ chuyển đúng số tiền trong QR</strong><p>Trang sẽ tự cập nhật sau khi webhook payOS xác nhận giao dịch.</p></div>
+            {order.checkout_url && canPay ? <a className="secondary-button full-button payos-link" href={order.checkout_url} target="_blank" rel="noreferrer">Mở trang thanh toán payOS ↗</a> : null}
+          </div>
         </div>
         <div className="prototype-note">Không đóng trang trong lúc chuyển khoản. Nếu ngân hàng đã báo thành công, hãy chờ vài giây để hệ thống xác minh.</div>
         <Link className="back-link payment-back-link" href={`/skills/${item.skill_slug}`}>← Quay lại sản phẩm</Link>
