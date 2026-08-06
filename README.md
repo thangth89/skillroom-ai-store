@@ -40,7 +40,7 @@ Không đưa khóa `SUPABASE_SERVICE_ROLE_KEY`, `PAYOS_API_KEY`, `PAYOS_CHECKSUM
 
 ## Trạng thái chức năng
 
-- Hoàn chỉnh: giao diện, lưới 3×3, phân trang, video preview, trang chi tiết, checkout, trang QR mẫu, thành công, tải file mẫu và giao diện quản trị.
+- Hoàn chỉnh: giao diện, lưới 3×2 với 6 Skill mỗi trang, sắp xếp thứ tự trong Admin, phân trang, video preview, trang chi tiết, checkout, trang QR mẫu, thành công, tải file mẫu và giao diện quản trị.
 - Đã chuẩn bị: đăng nhập admin bằng Supabase Auth, bảo vệ toàn bộ `/admin` và migration dữ liệu ban đầu.
 - Chưa kết nối thật: dữ liệu Supabase, payOS, Resend và kho file riêng tư.
 - Các API chưa kết nối cố ý trả mã `501` để không tạo đơn giả.
