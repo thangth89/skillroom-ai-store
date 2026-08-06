@@ -125,13 +125,17 @@ export async function sendOrderDeliveryEmail(input: {
 
   const token = randomBytes(32).toString("base64url");
   const expiresAt = new Date(Date.now() + DOWNLOAD_VALID_DAYS * 24 * 60 * 60 * 1000);
-  const { error: tokenError } = await supabase.from("download_tokens").insert({
-    order_item_id: item.id,
-    token_hash: hashDownloadToken(token),
-    expires_at: expiresAt.toISOString(),
-  });
+  const { data: tokenRow, error: tokenError } = await supabase
+    .from("download_tokens")
+    .insert({
+      order_item_id: item.id,
+      token_hash: hashDownloadToken(token),
+      expires_at: expiresAt.toISOString(),
+    })
+    .select("id")
+    .single<{ id: string }>();
 
-  if (tokenError) throw new Error("Không thể tạo liên kết tải Skill.");
+  if (tokenError || !tokenRow) throw new Error("Không thể tạo liên kết tải Skill.");
 
   const parsedOrigin = new URL(input.origin);
   if (!/^https?:$/.test(parsedOrigin.protocol)) throw new Error("Địa chỉ website không hợp lệ.");
@@ -163,7 +167,22 @@ export async function sendOrderDeliveryEmail(input: {
   const { data, error } = await resend.emails.send(payload, { idempotencyKey });
 
   if (error || !data?.id) {
+    await supabase.from("download_tokens").delete().eq("id", tokenRow.id);
     throw new Error(error?.message || "Resend chưa thể gửi email.");
+  }
+
+  if (input.force) {
+    const now = new Date().toISOString();
+    const { error: expireError } = await supabase
+      .from("download_tokens")
+      .update({ expires_at: now })
+      .eq("order_item_id", item.id)
+      .neq("id", tokenRow.id)
+      .gt("expires_at", now);
+
+    if (expireError) {
+      console.error("Không thể thu hồi liên kết tải cũ:", expireError);
+    }
   }
 
   return { status: "sent", emailId: data.id };
