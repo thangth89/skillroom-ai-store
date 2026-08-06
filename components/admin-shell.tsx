@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { logout } from "@/app/admin/actions";
 
 export function AdminShell({ title, eyebrow, children }: { title: string; eyebrow: string; children: React.ReactNode }) {
   return (
@@ -12,7 +13,12 @@ export function AdminShell({ title, eyebrow, children }: { title: string; eyebro
           <Link href="/admin/orders">Đơn hàng</Link>
           <Link href="/admin/settings">Cài đặt</Link>
         </nav>
-        <Link className="back-store" href="/">← Về cửa hàng</Link>
+        <div className="admin-sidebar-footer">
+          <Link className="back-store" href="/">← Về cửa hàng</Link>
+          <form action={logout}>
+            <button className="logout-button" type="submit">Đăng xuất</button>
+          </form>
+        </div>
       </aside>
       <main className="admin-main">
         <header className="admin-topbar">

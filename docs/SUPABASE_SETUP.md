@@ -1,0 +1,46 @@
+# Thiết lập Supabase cho Skillroom
+
+Phần đăng nhập quản trị đã có sẵn trong mã nguồn. Hãy hoàn thành các bước dưới đây để bật đăng nhập trên website thật.
+
+## 1. Tạo dự án
+
+1. Mở [database.new](https://database.new) và tạo một dự án Supabase.
+2. Trong **Project Settings → API**, sao chép **Project URL** và **Publishable key**.
+3. Không đưa **service_role key** vào biến bắt đầu bằng `NEXT_PUBLIC_`.
+
+## 2. Tạo tài khoản admin
+
+1. Vào **Authentication → Providers → Email** và bảo đảm đăng nhập bằng email được bật.
+2. Vào **Authentication → Users → Add user**.
+3. Tạo tài khoản bằng email và mật khẩu của bạn; đánh dấu email đã xác nhận nếu giao diện có tùy chọn này.
+4. Website không có trang đăng ký admin công khai.
+
+## 3. Tạo bảng dữ liệu
+
+1. Mở **SQL Editor** trong Supabase.
+2. Sao chép và chạy toàn bộ file `supabase/migrations/202608060001_initial.sql`.
+3. Migration bật Row Level Security và không cấp quyền đọc/ghi trực tiếp cho khách truy cập.
+
+## 4. Thêm biến môi trường trên Vercel
+
+Trong **Vercel → Project → Settings → Environment Variables**, thêm:
+
+```dotenv
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your-publishable-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+ADMIN_EMAILS=your-admin-email@example.com
+SKILL_STORAGE_BUCKET=skills-private
+```
+
+`ADMIN_EMAILS` có thể chứa nhiều email, ngăn cách bằng dấu phẩy. Email trong biến này phải trùng với tài khoản đã tạo ở bước 2.
+
+Chọn cả **Production**, **Preview** và **Development** nếu bạn muốn đăng nhập hoạt động ở cả ba môi trường. Sau khi lưu, redeploy dự án để Vercel nhận biến mới.
+
+## 5. Kiểm tra
+
+1. Mở `https://ten-mien-cua-ban/admin/login`.
+2. Đăng nhập bằng tài khoản admin đã tạo.
+3. Thử mở cửa sổ ẩn danh và truy cập `/admin`; website phải chuyển về `/admin/login`.
+
+Nếu chưa cấu hình đủ biến môi trường, trang đăng nhập sẽ hiển thị thông báo thiết lập và không thực hiện đăng nhập.

@@ -40,9 +40,14 @@ Không đưa khóa `SUPABASE_SERVICE_ROLE_KEY`, `PAYOS_API_KEY`, `PAYOS_CHECKSUM
 
 ## Trạng thái chức năng
 
-- Hoàn chỉnh: giao diện, lưới 3×3, phân trang, video preview, trang chi tiết, checkout, trang QR mẫu, thành công, tải file mẫu và quản trị.
-- Chưa kết nối thật: Supabase, payOS, Resend và kho file riêng tư.
+- Hoàn chỉnh: giao diện, lưới 3×3, phân trang, video preview, trang chi tiết, checkout, trang QR mẫu, thành công, tải file mẫu và giao diện quản trị.
+- Đã chuẩn bị: đăng nhập admin bằng Supabase Auth, bảo vệ toàn bộ `/admin` và migration dữ liệu ban đầu.
+- Chưa kết nối thật: dữ liệu Supabase, payOS, Resend và kho file riêng tư.
 - Các API chưa kết nối cố ý trả mã `501` để không tạo đơn giả.
+
+## Bật đăng nhập quản trị
+
+Tạo dự án Supabase, tạo tài khoản admin và khai báo biến môi trường theo [docs/SUPABASE_SETUP.md](docs/SUPABASE_SETUP.md). Không có liên kết quản trị trên menu khách hàng và không có trang đăng ký admin công khai.
 
 ## Thư mục chính
 
@@ -51,3 +56,4 @@ Không đưa khóa `SUPABASE_SERVICE_ROLE_KEY`, `PAYOS_API_KEY`, `PAYOS_CHECKSUM
 - `lib/`: kiểu dữ liệu, dữ liệu Skill và hàm định dạng.
 - `public/demo/`: video mô phỏng; thay bằng video YouTube Unlisted hoặc Cloudflare Stream khi vận hành.
 - `docs/ARCHITECTURE.md`: sơ đồ chức năng và lộ trình backend.
+- `docs/SUPABASE_SETUP.md`: hướng dẫn bật đăng nhập admin và tạo bảng dữ liệu.
