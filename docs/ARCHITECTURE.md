@@ -2,8 +2,8 @@
 
 ## Nhóm trang công khai
 
-- `/`: Trang cửa hàng, hero và 9 Skill đầu tiên.
-- `/skills`: Kho Skill, phân trang 9 sản phẩm.
+- `/`: Trang cửa hàng, hero và 6 Skill đầu tiên theo thứ tự Admin.
+- `/skills`: Kho Skill, phân trang 6 sản phẩm theo lưới 3×2 trên desktop.
 - `/skills/[slug]`: Video lớn, mô tả, nội dung bàn giao, yêu cầu và nút mua.
 - `/support`: Hướng dẫn mua và sử dụng.
 - `/legal/terms`, `/legal/privacy`: Điều khoản và quyền riêng tư.
@@ -65,4 +65,4 @@ Trạng thái lỗi: `EXPIRED`, `PAYMENT_MISMATCH`, `DELIVERY_FAILED`, `REFUNDED
 - `published`: Đang bán; bắt buộc đã có file trong bucket riêng tư.
 - `archived`: Đã ẩn nhưng không xóa để giữ lịch sử đơn hàng.
 
-Trang quản trị hỗ trợ thêm, sửa, đổi trạng thái và thay file Skill. Khi chưa có sản phẩm thật hợp lệ, cửa hàng dùng dữ liệu demo. Ngay khi có ít nhất một Skill `published` đủ video và file, trang chủ, kho 3×3, trang chi tiết và checkout tự chuyển sang dữ liệu Supabase.
+Trang quản trị hỗ trợ thêm, sửa, đổi trạng thái, thay file và sắp xếp thứ tự Skill. Khi chưa có sản phẩm thật hợp lệ, cửa hàng dùng dữ liệu demo. Ngay khi có ít nhất một Skill `published` đủ video và file, trang chủ, kho 3×2, trang chi tiết và checkout tự chuyển sang dữ liệu Supabase.
