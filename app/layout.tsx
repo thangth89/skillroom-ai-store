@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import "@fontsource-variable/manrope";
-import "@fontsource-variable/newsreader/wght-italic.css";
 import "./globals.css";
 import "./polish.css";
 
