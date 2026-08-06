@@ -1,16 +1,10 @@
 import Link from "next/link";
 import { AdminShell } from "@/components/admin-shell";
-import { formatVnd } from "@/lib/format";
+import { AdminSkillSorter } from "@/components/admin-skill-sorter";
 import { hasAdminDataConfig, requireAdmin } from "@/lib/supabase/admin";
-import { listAdminSkills, type SkillStatus } from "@/lib/supabase/skill-records";
+import { listAdminSkills } from "@/lib/supabase/skill-records";
 
 export const dynamic = "force-dynamic";
-
-const statusLabel: Record<SkillStatus, string> = {
-  draft: "Bản nháp",
-  published: "Đang bán",
-  archived: "Đã ẩn",
-};
 
 export default async function AdminSkillsPage() {
   await requireAdmin();
@@ -27,7 +21,7 @@ export default async function AdminSkillsPage() {
     );
   }
 
-  const { data: skills, error } = await listAdminSkills();
+  const { data: skills, error, sortReady } = await listAdminSkills();
 
   return (
     <AdminShell eyebrow="NỘI DUNG" title="Quản lý Skill">
@@ -52,28 +46,7 @@ export default async function AdminSkillsPage() {
         ) : null}
 
         {skills && skills.length > 0 ? (
-          <div className="admin-table">
-            <div className="table-row table-head">
-              <span>Sản phẩm</span>
-              <span>Nhóm</span>
-              <span>Giá</span>
-              <span>Trạng thái</span>
-            </div>
-            {skills.map((skill) => (
-              <div className="table-row" key={skill.id}>
-                <span>
-                  <strong>{skill.name}</strong>
-                  <small>{skill.version} · /{skill.slug}</small>
-                </span>
-                <span>{skill.category}</span>
-                <span>{formatVnd(skill.price)}</span>
-                <span>
-                  <i className={`skill-status ${skill.status}`}>{statusLabel[skill.status]}</i>
-                  <Link href={`/admin/skills/${skill.id}`}>Sửa ↗</Link>
-                </span>
-              </div>
-            ))}
-          </div>
+          <AdminSkillSorter skills={skills} sortReady={sortReady} />
         ) : null}
       </section>
     </AdminShell>
