@@ -32,6 +32,30 @@ export function hashDownloadToken(token: string) {
   return createHash("sha256").update(token).digest("hex");
 }
 
+export async function revokeOrderDownloadLinks(orderId: string) {
+  const supabase = createAdminClient();
+  const { data: items, error: itemError } = await supabase
+    .from("order_items")
+    .select("id")
+    .eq("order_id", orderId)
+    .returns<Array<{ id: string }>>();
+
+  if (itemError) throw new Error("Không thể đọc liên kết tải của đơn hàng.");
+  if (!items?.length) return;
+
+  const now = new Date().toISOString();
+  const { error } = await supabase
+    .from("download_tokens")
+    .update({ expires_at: now })
+    .in(
+      "order_item_id",
+      items.map((item) => item.id),
+    )
+    .gt("expires_at", now);
+
+  if (error) throw new Error("Không thể thu hồi liên kết tải cũ.");
+}
+
 function escapeHtml(value: string) {
   return value
     .replaceAll("&", "&amp;")
