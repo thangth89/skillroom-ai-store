@@ -183,7 +183,7 @@ export const skills: SkillProduct[] = [
   },
 ];
 
-export const pageSize = 9;
+export const pageSize = 6;
 
 export function getSkill(slug: string) {
   return skills.find((skill) => skill.slug === slug);
