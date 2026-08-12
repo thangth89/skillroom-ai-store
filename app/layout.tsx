@@ -5,10 +5,10 @@ import "./polish.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "Skillroom — Skill AI có video kiểm chứng",
+    default: "Skillroom — Video-verified AI Skills",
     template: "%s — Skillroom",
   },
-  description: "Xem video thành phẩm, đọc chi tiết và mua Skill AI an toàn qua VietQR.",
+  description: "Watch real outputs, understand the workflow and get practical AI Skills delivered securely by email.",
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",
@@ -16,5 +16,5 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="vi"><body>{children}</body></html>;
+  return <html lang="en"><body>{children}</body></html>;
 }
