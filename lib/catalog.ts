@@ -16,6 +16,7 @@ type PublicSkillRow = {
   description_en: string;
   price_usd_cents: number | null;
   is_free: boolean;
+  lemon_checkout_url: string | null;
   category_en: string;
   version: string;
   video_url: string;
@@ -36,6 +37,7 @@ function isMissingInternationalFieldsError(error: { code?: string; message: stri
     message.includes("name_en") ||
     message.includes("price_usd_cents") ||
     message.includes("is_free")
+    || message.includes("lemon_checkout_url")
   );
 }
 
@@ -56,6 +58,7 @@ const publicSkillColumns = [
   "description_en",
   "price_usd_cents",
   "is_free",
+  "lemon_checkout_url",
   "category_en",
   "version",
   "video_url",
@@ -76,6 +79,7 @@ function mapSkill(row: PublicSkillRow): SkillProduct {
     description: row.description_en,
     priceUsdCents: row.price_usd_cents,
     isFree: row.is_free,
+    lemonCheckoutUrl: row.lemon_checkout_url,
     category: row.category_en,
     version: row.version,
     videoSrc: row.video_url,
