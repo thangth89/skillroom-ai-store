@@ -31,16 +31,16 @@ export function AdminSkillForm({ skill }: { skill?: SkillRecord }) {
 
       <section className="admin-form-section">
         <div className="admin-form-heading">
-          <span>THÔNG TIN CHÍNH</span>
-          <p>Tên, đường dẫn, giá và trạng thái hiển thị của Skill.</p>
+          <span>SHARED SOURCE DATA</span>
+          <p>Core record shared with the Vietnamese store. These fields remain required by the shared database.</p>
         </div>
         <div className="admin-form-grid">
           <label className="wide-field">
-            <span>Tên Skill *</span>
+            <span>Source Skill name *</span>
             <input defaultValue={skill?.name} maxLength={120} name="name" required />
           </label>
           <label>
-            <span>Đường dẫn *</span>
+            <span>Slug *</span>
             <input
               defaultValue={skill?.slug}
               name="slug"
@@ -48,39 +48,39 @@ export function AdminSkillForm({ skill }: { skill?: SkillRecord }) {
               placeholder="nature-aquascape-v22"
               required
             />
-            <small>Chữ thường không dấu, dùng dấu gạch ngang.</small>
+            <small>Use lowercase letters, numbers and hyphens only.</small>
           </label>
           <label>
-            <span>Nhóm *</span>
+            <span>Source category *</span>
             <input defaultValue={skill?.category} name="category" placeholder="Aquascape" required />
           </label>
           <label>
-            <span>Phiên bản *</span>
+            <span>Version *</span>
             <input defaultValue={skill?.version ?? "V1.0"} name="version" required />
           </label>
           <label>
-            <span>Giá bán (VND) *</span>
+            <span>Vietnam price (VND) *</span>
             <input defaultValue={skill?.price} min={0} name="price" step={1000} type="number" required />
           </label>
           <label>
-            <span>Trạng thái *</span>
+            <span>Status *</span>
             <select defaultValue={skill?.status ?? "draft"} name="status">
-              <option value="draft">Bản nháp</option>
-              <option value="published">Đang bán</option>
-              <option value="archived">Đã ẩn</option>
+              <option value="draft">Draft</option>
+              <option value="published">Published</option>
+              <option value="archived">Archived</option>
             </select>
           </label>
           <label className="checkbox-field">
             <input defaultChecked={skill?.featured} name="featured" type="checkbox" />
-            <span>Đánh dấu là Skill nổi bật</span>
+            <span>Feature this Skill</span>
           </label>
         </div>
       </section>
 
       <section className="admin-form-section international-fields">
         <div className="admin-form-heading">
-          <span>CỬA HÀNG QUỐC TẾ</span>
-          <p>Nội dung tiếng Anh và giá USD. Để trống tên tiếng Anh nếu chưa muốn hiện Skill ở bản quốc tế.</p>
+          <span>INTERNATIONAL STOREFRONT</span>
+          <p>English content and USD pricing. Leave the English name blank to keep this Skill off the international store.</p>
         </div>
         <div className="admin-form-grid">
           <label className="wide-field">
@@ -97,7 +97,7 @@ export function AdminSkillForm({ skill }: { skill?: SkillRecord }) {
           </label>
           <label className="checkbox-field">
             <input defaultChecked={skill?.is_free ?? false} name="is_free" type="checkbox" />
-            <span>Đây là Free Skill — chỉ cần email, không thanh toán</span>
+            <span>Free Skill — email delivery, no payment required</span>
           </label>
           <label className="wide-field">
             <span>Lemon Squeezy Checkout URL</span>
@@ -107,7 +107,7 @@ export function AdminSkillForm({ skill }: { skill?: SkillRecord }) {
               placeholder="https://your-store.lemonsqueezy.com/checkout/buy/..."
               type="url"
             />
-            <small>Mỗi Skill trả phí dùng một Checkout URL riêng. Free Skill để trống.</small>
+            <small>Use one unique Checkout URL for each paid Skill. Leave blank for a Free Skill.</small>
           </label>
           <label className="wide-field">
             <span>English eyebrow</span>
@@ -138,20 +138,20 @@ export function AdminSkillForm({ skill }: { skill?: SkillRecord }) {
 
       <section className="admin-form-section">
         <div className="admin-form-heading">
-          <span>NỘI DUNG GIỚI THIỆU</span>
-          <p>Nội dung khách hàng đọc trước khi quyết định mua.</p>
+          <span>VIETNAMESE SOURCE COPY</span>
+          <p>Shared source content used by the Vietnamese storefront.</p>
         </div>
         <div className="admin-form-grid">
           <label className="wide-field">
-            <span>Dòng giới thiệu ngắn</span>
+            <span>Source eyebrow</span>
             <input defaultValue={skill?.eyebrow} name="eyebrow" />
           </label>
           <label className="wide-field">
-            <span>Mô tả trên thẻ sản phẩm *</span>
+            <span>Source card description *</span>
             <textarea defaultValue={skill?.short_description} name="short_description" required rows={3} />
           </label>
           <label className="wide-field">
-            <span>Mô tả chi tiết *</span>
+            <span>Source full description *</span>
             <textarea defaultValue={skill?.description} name="description" required rows={6} />
           </label>
         </div>
@@ -159,20 +159,20 @@ export function AdminSkillForm({ skill }: { skill?: SkillRecord }) {
 
       <section className="admin-form-section">
         <div className="admin-form-heading">
-          <span>VIDEO VÀ FILE GIAO</span>
-          <p>Hỗ trợ MP4 trực tiếp, YouTube, Facebook và Instagram.</p>
+          <span>VIDEO &amp; DELIVERY FILE</span>
+          <p>Supports direct MP4, YouTube, Facebook and Instagram URLs.</p>
         </div>
         <div className="admin-form-grid">
           <label className="wide-field">
-            <span>URL video thành phẩm</span>
-            <input defaultValue={skill?.video_url ?? ""} name="video_url" placeholder="https://youtu.be/... hoặc https://.../video.mp4" type="url" />
-            <small>Nhận link MP4, YouTube, Facebook Video/Reel hoặc Instagram Post/Reel công khai.</small>
+            <span>Result video URL</span>
+            <input defaultValue={skill?.video_url ?? ""} name="video_url" placeholder="https://youtu.be/... or https://.../video.mp4" type="url" />
+            <small>Public MP4, YouTube, Facebook Video/Reel or Instagram Post/Reel URL.</small>
           </label>
           <label className="wide-field">
-            <span>{skill?.file_path ? "Thay file Skill" : "File Skill"}</span>
+            <span>{skill?.file_path ? "Replace Skill file" : "Skill file"}</span>
             <input accept=".skill,.zip,.md,.txt,.json" name="skill_file" type="file" />
             <small>
-              Tối đa 4 MB. {skill?.file_path ? `File hiện tại: ${skill.file_path}` : "Có thể để trống khi lưu nháp."}
+              Maximum 4 MB. {skill?.file_path ? `Current file: ${skill.file_path}` : "May be left blank while saving a draft."}
             </small>
           </label>
         </div>
@@ -180,20 +180,20 @@ export function AdminSkillForm({ skill }: { skill?: SkillRecord }) {
 
       <section className="admin-form-section">
         <div className="admin-form-heading">
-          <span>GIÁ TRỊ BÀN GIAO</span>
-          <p>Mỗi dòng là một ý riêng hiển thị trên trang chi tiết.</p>
+          <span>VIETNAMESE SOURCE DETAILS</span>
+          <p>One item per line. International equivalents are managed above.</p>
         </div>
         <div className="admin-form-grid three-columns">
           <label>
-            <span>Kết quả đạt được</span>
+            <span>Source outcomes</span>
             <textarea defaultValue={lines(skill?.outcomes)} name="outcomes" rows={7} />
           </label>
           <label>
-            <span>Khách nhận được</span>
+            <span>Source deliverables</span>
             <textarea defaultValue={lines(skill?.deliverables)} name="deliverables" rows={7} />
           </label>
           <label>
-            <span>Yêu cầu sử dụng</span>
+            <span>Source requirements</span>
             <textarea defaultValue={lines(skill?.requirements)} name="requirements" rows={7} />
           </label>
         </div>
@@ -201,16 +201,16 @@ export function AdminSkillForm({ skill }: { skill?: SkillRecord }) {
 
       <section className="admin-form-section compact-section">
         <div className="admin-form-heading">
-          <span>MÀU VIDEO</span>
-          <p>Màu nền dự phòng khi video chưa tải xong.</p>
+          <span>VIDEO COLORS</span>
+          <p>Fallback colors shown while the video preview is loading.</p>
         </div>
         <div className="admin-form-grid color-fields">
           <label>
-            <span>Màu nhấn</span>
+            <span>Accent color</span>
             <input defaultValue={skill?.accent ?? "#b8ff6a"} name="accent" pattern="#[0-9a-fA-F]{6}" />
           </label>
           <label>
-            <span>Màu nền</span>
+            <span>Background color</span>
             <input defaultValue={skill?.accent_soft ?? "#19351e"} name="accent_soft" pattern="#[0-9a-fA-F]{6}" />
           </label>
         </div>
@@ -218,10 +218,10 @@ export function AdminSkillForm({ skill }: { skill?: SkillRecord }) {
 
       <div className="admin-form-actions">
         <Link className="secondary-button" href="/admin/skills">
-          Quay lại
+          Back
         </Link>
         <button className="primary-button" disabled={pending} type="submit">
-          {pending ? "Đang lưu…" : skill ? "Lưu thay đổi" : "Tạo Skill"}
+          {pending ? "Saving…" : skill ? "Save changes" : "Create Skill"}
         </button>
       </div>
     </form>
