@@ -21,9 +21,9 @@ export default async function CheckoutPage({ params }: { params: Promise<{ slug:
         <p>
           {skill.isFree
             ? "Enter an email address you can access. We will send a private download link directly to your inbox."
-            : "Enter the email that should receive your Skill. International payment will open in a secure hosted checkout once Lemon Squeezy is connected."}
+            : "Enter the email you will use at checkout. Payment opens securely on Lemon Squeezy, where you can choose an available card or wallet."}
         </p>
-        <CheckoutForm isFree={skill.isFree} slug={skill.slug} />
+        <CheckoutForm checkoutUrl={skill.lemonCheckoutUrl} isFree={skill.isFree} slug={skill.slug} />
       </div>
       <aside className="order-summary">
         <span>{skill.isFree ? "FREE DOWNLOAD" : "ORDER SUMMARY"}</span>
