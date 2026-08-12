@@ -23,7 +23,7 @@ export async function login(
 ): Promise<LoginState> {
   if (!hasAdminAuthConfig()) {
     return {
-      error: "Chưa cấu hình Supabase và ADMIN_EMAILS trên Vercel.",
+      error: "Supabase and ADMIN_EMAILS are not configured on Vercel.",
     };
   }
 
@@ -33,7 +33,7 @@ export async function login(
   const password = typeof passwordValue === "string" ? passwordValue : "";
 
   if (!email || !password) {
-    return { error: "Vui lòng nhập đầy đủ email và mật khẩu." };
+    return { error: "Enter both your email and password." };
   }
 
   const supabase = await createClient();
@@ -43,12 +43,12 @@ export async function login(
   });
 
   if (error || !data.user) {
-    return { error: "Email hoặc mật khẩu không chính xác." };
+    return { error: "The email or password is incorrect." };
   }
 
   if (!isAdminEmail(data.user.email)) {
     await supabase.auth.signOut();
-    return { error: "Tài khoản này không có quyền quản trị." };
+    return { error: "This account does not have administrator access." };
   }
 
   redirect(getSafeNext(formData.get("next")));
