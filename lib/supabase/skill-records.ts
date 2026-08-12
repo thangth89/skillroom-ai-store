@@ -31,6 +31,7 @@ export type SkillRecord = {
   category_en?: string | null;
   price_usd_cents?: number | null;
   is_free?: boolean;
+  lemon_checkout_url?: string | null;
   deliverables_en?: string[];
   outcomes_en?: string[];
   requirements_en?: string[];
