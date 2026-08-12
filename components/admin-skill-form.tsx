@@ -77,6 +77,55 @@ export function AdminSkillForm({ skill }: { skill?: SkillRecord }) {
         </div>
       </section>
 
+      <section className="admin-form-section international-fields">
+        <div className="admin-form-heading">
+          <span>CỬA HÀNG QUỐC TẾ</span>
+          <p>Nội dung tiếng Anh và giá USD. Để trống tên tiếng Anh nếu chưa muốn hiện Skill ở bản quốc tế.</p>
+        </div>
+        <div className="admin-form-grid">
+          <label className="wide-field">
+            <span>English Skill name</span>
+            <input defaultValue={skill?.name_en ?? ""} maxLength={120} name="name_en" />
+          </label>
+          <label>
+            <span>English category</span>
+            <input defaultValue={skill?.category_en ?? ""} name="category_en" placeholder="Model Assembly" />
+          </label>
+          <label>
+            <span>International price (USD)</span>
+            <input defaultValue={skill?.price_usd_cents == null ? "" : skill.price_usd_cents / 100} min={0} name="price_usd" step="0.01" type="number" />
+          </label>
+          <label className="checkbox-field">
+            <input defaultChecked={skill?.is_free ?? false} name="is_free" type="checkbox" />
+            <span>Đây là Free Skill — chỉ cần email, không thanh toán</span>
+          </label>
+          <label className="wide-field">
+            <span>English eyebrow</span>
+            <input defaultValue={skill?.eyebrow_en ?? ""} name="eyebrow_en" />
+          </label>
+          <label className="wide-field">
+            <span>English card description</span>
+            <textarea defaultValue={skill?.short_description_en ?? ""} name="short_description_en" rows={3} />
+          </label>
+          <label className="wide-field">
+            <span>English full description</span>
+            <textarea defaultValue={skill?.description_en ?? ""} name="description_en" rows={6} />
+          </label>
+          <label>
+            <span>English outcomes</span>
+            <textarea defaultValue={lines(skill?.outcomes_en)} name="outcomes_en" rows={7} />
+          </label>
+          <label>
+            <span>English deliverables</span>
+            <textarea defaultValue={lines(skill?.deliverables_en)} name="deliverables_en" rows={7} />
+          </label>
+          <label>
+            <span>English requirements</span>
+            <textarea defaultValue={lines(skill?.requirements_en)} name="requirements_en" rows={7} />
+          </label>
+        </div>
+      </section>
+
       <section className="admin-form-section">
         <div className="admin-form-heading">
           <span>NỘI DUNG GIỚI THIỆU</span>
