@@ -14,6 +14,6 @@ export default async function PaymentSuccessPage({ searchParams }: { searchParam
   if (order.status !== "paid") redirect(`/payment/${encodeURIComponent(order.order_code)}`);
 
   return (
-    <><SiteHeader /><main className="success-page shell"><section className="success-card"><div className="success-mark">✓</div><span className="section-index">THANH TOÁN THÀNH CÔNG</span><h1>Đơn hàng đã được xác nhận.</h1><p>Đơn <strong>{order.order_code}</strong> cho <strong>{item.skill_name}</strong> đã được webhook payOS xác minh. Email chứa liên kết tải bảo mật đang được gửi đến địa chỉ bạn đã nhập. Nếu chưa thấy, hãy kiểm tra cả mục Spam/Thư rác.</p><div className="success-actions"><Link className="primary-button" href="/skills">Xem thêm Skill <span>→</span></Link><Link className="secondary-button" href="/support">Cần hỗ trợ?</Link></div></section></main><SiteFooter /></>
+    <><SiteHeader /><main className="success-page shell"><section className="success-card"><div className="success-mark">✓</div><span className="section-index">PAYMENT CONFIRMED</span><h1>Your Skill is on its way.</h1><p>Reference <strong>{order.order_code}</strong> for <strong>{item.skill_name}</strong> has been verified. A private download link is being sent to the email you entered. If it does not arrive, check Spam or Junk before contacting support.</p><div className="success-actions"><Link className="primary-button" href="/skills">Explore more Skills <span>→</span></Link><Link className="secondary-button" href="/support">Need help?</Link></div></section></main><SiteFooter /></>
   );
 }
