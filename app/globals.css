@@ -207,6 +207,12 @@ button { color: inherit; }
 .skill-sort-product { min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 3px; }
 .skill-sort-product strong { overflow: hidden; max-width: 100%; text-overflow: ellipsis; white-space: nowrap; }
 .skill-sort-product small { overflow: hidden; max-width: 100%; color: #969990; text-overflow: ellipsis; white-space: nowrap; }
+.skill-sales-cell { display: flex; min-width: 0; flex-wrap: wrap; align-items: center; gap: 5px 7px; }
+.skill-sales-cell strong { font-size: 11px; }
+.skill-sales-cell small { flex-basis: 100%; color: #a24a37; font-size: 9px; }
+.skill-sales-badge { border-radius: 999px; padding: 5px 7px; font-size: 8px; font-style: normal; font-weight: 760; letter-spacing: .04em; text-transform: uppercase; }
+.skill-sales-badge.free { background: #dff2cf; color: #3d6b22; }
+.skill-sales-badge.paid { background: #dce7f5; color: #315b87; }
 .skill-sort-status { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .skill-sort-status i { border-radius: 999px; background: #dcefcf; padding: 5px 7px; color: #416725; font-size: 8px; font-style: normal; white-space: nowrap; }
 .skill-sort-status a { color: #62675e; font-size: 10px; text-decoration: underline; text-underline-offset: 3px; }
@@ -240,6 +246,19 @@ button { color: inherit; }
 .admin-form-grid .wide-field { grid-column: 1 / -1; }
 .admin-form-grid .checkbox-field { grid-column: 1 / -1; flex-direction: row; align-items: center; gap: 9px; }
 .checkbox-field input { width: 17px; height: 17px; accent-color: var(--ink); }
+.sale-type-field { min-width: 0; margin: 0; border: 0; padding: 0; }
+.sale-type-field legend { margin-bottom: 9px; padding: 0; font-size: 11px; font-weight: 720; }
+.sale-type-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.admin-form-grid .sale-type-options label { min-height: 112px; display: grid; grid-template-columns: auto 1fr; gap: 11px; align-items: flex-start; border: 1px solid #cfcdc4; border-radius: 13px; background: white; padding: 16px; cursor: pointer; transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease; }
+.admin-form-grid .sale-type-options label.selected { border-color: #5d853e; background: #f1f8ec; box-shadow: 0 0 0 3px rgba(93,133,62,.09); }
+.sale-type-options input { width: 17px; height: 17px; margin: 2px 0 0; accent-color: #315f39; }
+.sale-type-options label > span { display: flex; flex-direction: column; gap: 6px; }
+.sale-type-options strong { font-size: 13px; }
+.sale-type-options small { color: #737970; font-size: 10px; line-height: 1.55; }
+.sale-type-summary { border: 1px solid #bdd6aa; border-radius: 12px; background: #edf7e6; padding: 14px 15px; }
+.sale-type-summary strong, .sale-type-summary span { display: block; }
+.sale-type-summary strong { color: #345c22; font-size: 12px; }
+.sale-type-summary span { margin-top: 4px; color: #5c7151; font-size: 10px; line-height: 1.55; }
 .color-fields { max-width: 430px; }
 .admin-form-error { border: 1px solid #ebbbb2; border-radius: 11px; background: #ffe0da; padding: 13px 15px; color: #812e20; font-size: 11px; line-height: 1.55; }
 .admin-form-actions { position: sticky; z-index: 10; bottom: 18px; display: flex; justify-content: flex-end; gap: 10px; border: 1px solid rgba(17,19,15,.1); border-radius: 16px; background: rgba(248,247,242,.92); backdrop-filter: blur(14px); padding: 13px; box-shadow: 0 14px 40px rgba(17,19,15,.08); }
@@ -350,6 +369,7 @@ button { color: inherit; }
   .admin-form-section { padding: 20px 16px; }
   .admin-form-grid { grid-template-columns: 1fr; }
   .admin-form-grid .wide-field, .admin-form-grid .checkbox-field { grid-column: auto; }
+  .sale-type-options { grid-template-columns: 1fr; }
   .admin-form-actions { bottom: 10px; }
   .admin-form-actions .primary-button, .admin-form-actions .secondary-button { min-height: 46px; padding-inline: 17px; }
   .order-detail-actions, .order-detail-actions form, .order-detail-actions .primary-button, .order-detail-actions .secondary-button { width: 100%; }
