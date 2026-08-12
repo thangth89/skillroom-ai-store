@@ -65,8 +65,8 @@ function escapeHtml(value: string) {
     .replaceAll("'", "&#039;");
 }
 
-function emailSubject(skillName: string) {
-  return `Skillroom - Link tải ${skillName}`.replace(/[\r\n]+/g, " ");
+function emailSubject(skillName: string, deliveryType: "paid" | "free") {
+  return `${deliveryType === "free" ? "Your free Skill" : "Your Skill is ready"} - ${skillName}`.replace(/[\r\n]+/g, " ");
 }
 
 function emailHtml(input: {
@@ -74,6 +74,7 @@ function emailHtml(input: {
   skillName: string;
   version: string;
   downloadUrl: string;
+  deliveryType: "paid" | "free";
 }) {
   const orderCode = escapeHtml(input.orderCode);
   const skillName = escapeHtml(input.skillName);
@@ -81,21 +82,21 @@ function emailHtml(input: {
   const downloadUrl = escapeHtml(input.downloadUrl);
 
   return `<!doctype html>
-<html lang="vi">
+<html lang="en">
   <body style="margin:0;background:#f2f0e8;color:#11140f;font-family:Arial,sans-serif">
     <div style="max-width:620px;margin:0 auto;padding:40px 20px">
       <div style="background:#11140f;color:#fff;border-radius:24px;padding:36px">
         <div style="color:#b8ff6a;font-size:13px;font-weight:700;letter-spacing:.12em">SKILLROOM</div>
-        <h1 style="margin:18px 0 12px;font-size:32px;line-height:1.15">Skill của bạn đã sẵn sàng.</h1>
-        <p style="margin:0;color:#c8ccc4;line-height:1.7">Thanh toán cho đơn <strong style="color:#fff">${orderCode}</strong> đã được xác nhận.</p>
+        <h1 style="margin:18px 0 12px;font-size:32px;line-height:1.15">Your Skill is ready.</h1>
+        <p style="margin:0;color:#c8ccc4;line-height:1.7">${input.deliveryType === "free" ? "Your free Skill request" : "Your payment"} has been confirmed under reference <strong style="color:#fff">${orderCode}</strong>.</p>
         <div style="margin:28px 0;padding:20px;border:1px solid #343a31;border-radius:16px">
           <div style="font-size:20px;font-weight:700">${skillName}</div>
-          <div style="margin-top:6px;color:#9ca298;font-size:13px">Phiên bản ${version}</div>
+          <div style="margin-top:6px;color:#9ca298;font-size:13px">Version ${version}</div>
         </div>
-        <a href="${downloadUrl}" style="display:inline-block;background:#b8ff6a;color:#11140f;padding:15px 22px;border-radius:999px;text-decoration:none;font-weight:700">Tải Skill</a>
-        <p style="margin:24px 0 0;color:#9ca298;font-size:13px;line-height:1.7">Liên kết có hiệu lực 7 ngày và tối đa 5 lượt tải. Không chia sẻ liên kết này cho người khác.</p>
+        <a href="${downloadUrl}" style="display:inline-block;background:#b8ff6a;color:#11140f;padding:15px 22px;border-radius:999px;text-decoration:none;font-weight:700">Download your Skill</a>
+        <p style="margin:24px 0 0;color:#9ca298;font-size:13px;line-height:1.7">This private link is valid for 7 days and up to 5 downloads. Please do not share it.</p>
       </div>
-      <p style="margin:18px 8px 0;color:#747970;font-size:12px;line-height:1.6">Nếu nút không hoạt động, hãy sao chép đường dẫn sau vào trình duyệt:<br><a href="${downloadUrl}" style="color:#384532;word-break:break-all">${downloadUrl}</a></p>
+      <p style="margin:18px 8px 0;color:#747970;font-size:12px;line-height:1.6">If the button does not work, copy this address into your browser:<br><a href="${downloadUrl}" style="color:#384532;word-break:break-all">${downloadUrl}</a></p>
     </div>
   </body>
 </html>`;
@@ -106,17 +107,18 @@ function emailText(input: {
   skillName: string;
   version: string;
   downloadUrl: string;
+  deliveryType: "paid" | "free";
 }) {
   return [
-    "Skillroom - Skill của bạn đã sẵn sàng.",
+    "Skillroom - Your Skill is ready.",
     "",
-    `Đơn hàng: ${input.orderCode}`,
-    `Sản phẩm: ${input.skillName}`,
-    `Phiên bản: ${input.version}`,
+    `Reference: ${input.orderCode}`,
+    `Skill: ${input.skillName}`,
+    `Version: ${input.version}`,
     "",
-    `Tải Skill: ${input.downloadUrl}`,
+    `Download your Skill: ${input.downloadUrl}`,
     "",
-    "Liên kết có hiệu lực 7 ngày và tối đa 5 lượt tải. Không chia sẻ liên kết này cho người khác.",
+    "This private link is valid for 7 days and up to 5 downloads. Please do not share it.",
   ].join("\n");
 }
 
@@ -124,6 +126,7 @@ export async function sendOrderDeliveryEmail(input: {
   orderId: string;
   origin: string;
   force?: boolean;
+  deliveryType?: "paid" | "free";
 }): Promise<DeliveryResult> {
   if (!hasEmailDeliveryConfig()) return { status: "not_configured" };
 
@@ -165,22 +168,25 @@ export async function sendOrderDeliveryEmail(input: {
   if (!/^https?:$/.test(parsedOrigin.protocol)) throw new Error("Địa chỉ website không hợp lệ.");
   const downloadUrl = new URL(`/download/${token}`, parsedOrigin.origin).toString();
   const replyTo = process.env.EMAIL_REPLY_TO?.trim();
+  const deliveryType = input.deliveryType ?? "paid";
   const resend = new Resend(process.env.RESEND_API_KEY!);
   const payload = {
     from: process.env.EMAIL_FROM!,
     to: order.customer_email,
-    subject: emailSubject(item.skill_name),
+    subject: emailSubject(item.skill_name, deliveryType),
     html: emailHtml({
       orderCode: order.order_code,
       skillName: item.skill_name,
       version: item.version,
       downloadUrl,
+      deliveryType,
     }),
     text: emailText({
       orderCode: order.order_code,
       skillName: item.skill_name,
       version: item.version,
       downloadUrl,
+      deliveryType,
     }),
     ...(replyTo ? { replyTo } : {}),
     tags: [{ name: "order", value: order.order_code }],
