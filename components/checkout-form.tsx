@@ -1,41 +1,51 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 
-export function CheckoutForm({ slug }: { slug: string }) {
-  const router = useRouter();
+export function CheckoutForm({ slug, isFree }: { slug: string; isFree: boolean }) {
   const [email, setEmail] = useState("");
   const [agreed, setAgreed] = useState(false);
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
+  const [success, setSuccess] = useState("");
+  const [marketingConsent, setMarketingConsent] = useState(false);
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!/^\S+@\S+\.\S+$/.test(email)) {
-      setError("Vui lòng nhập đúng địa chỉ email nhận Skill.");
+      setError("Enter a valid email address for delivery.");
       return;
     }
     if (!agreed) {
-      setError("Bạn cần đồng ý với điều khoản sản phẩm số.");
+      setError("Please agree to the digital product terms.");
       return;
     }
-    setPending(true);
     setError("");
+    setSuccess("");
+
+    if (!isFree) {
+      setError("International checkout is not connected yet. No payment has been taken.");
+      return;
+    }
+
+    setPending(true);
     try {
-      const response = await fetch("/api/orders", {
+      const response = await fetch("/api/free-skills/claim", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, slug }),
+        body: JSON.stringify({ email, slug, marketingConsent }),
       });
-      const data = (await response.json()) as { orderCode?: string; error?: string };
-      if (!response.ok || !data.orderCode) {
-        setError(data.error || "Không thể tạo đơn hàng. Vui lòng thử lại.");
+      const data = (await response.json()) as { success?: boolean; error?: string };
+      if (!response.ok || !data.success) {
+        setError(data.error || "We could not send the Skill. Please try again.");
         return;
       }
-      router.push(`/payment/${encodeURIComponent(data.orderCode)}`);
+      setSuccess("Check your inbox. Your private Skill download link is on its way.");
+      setEmail("");
+      setAgreed(false);
+      setMarketingConsent(false);
     } catch {
-      setError("Không thể kết nối máy chủ. Vui lòng kiểm tra mạng và thử lại.");
+      setError("We could not reach the server. Check your connection and try again.");
     } finally {
       setPending(false);
     }
@@ -43,24 +53,37 @@ export function CheckoutForm({ slug }: { slug: string }) {
 
   return (
     <form className="checkout-form" onSubmit={submit} noValidate>
-      <label htmlFor="email">Email nhận Skill</label>
+      <label htmlFor="email">Delivery email</label>
       <input
         id="email"
         name="email"
         type="email"
         value={email}
         onChange={(event) => { setEmail(event.target.value); setError(""); }}
-        placeholder="ban@example.com"
+        placeholder="you@example.com"
         autoComplete="email"
       />
-      <p className="field-help">Chúng tôi sẽ gửi liên kết tải có thời hạn đến địa chỉ này.</p>
+      <p className="field-help">We will send a time-limited private download link to this address.</p>
       <label className="check-row">
         <input type="checkbox" checked={agreed} onChange={(event) => { setAgreed(event.target.checked); setError(""); }} />
-        <span>Tôi đã kiểm tra email và đồng ý với điều khoản sử dụng Skill.</span>
+        <span>I have checked my email and agree to the digital product terms.</span>
       </label>
+      {isFree ? (
+        <label className="check-row optional-consent">
+          <input type="checkbox" checked={marketingConsent} onChange={(event) => setMarketingConsent(event.target.checked)} />
+          <span>Optional: send me new Skill releases and occasional offers.</span>
+        </label>
+      ) : null}
       {error && <p className="form-error" role="alert">{error}</p>}
-      <button className="primary-button full-button" disabled={pending} type="submit">{pending ? "Đang tạo mã QR…" : "Tiếp tục thanh toán"} <span>→</span></button>
-      <p className="secure-note">Thanh toán VietQR qua payOS • Tiền chuyển trực tiếp tới tài khoản của cửa hàng</p>
+      {success ? <p className="form-success" role="status">{success}</p> : null}
+      <button className="primary-button full-button" disabled={pending} type="submit">
+        {pending ? "Sending…" : isFree ? "Email me the free Skill" : "Continue to secure checkout"} <span>→</span>
+      </button>
+      {isFree ? (
+        <p className="secure-note">No payment required • Your download link stays private</p>
+      ) : (
+        <><div className="payment-method-list" aria-label="Planned payment methods"><span>VISA</span><span>Mastercard</span><span>PayPal</span><span>Apple Pay</span><span>G Pay</span></div><p className="secure-note">Checkout interface ready • Lemon Squeezy connection pending</p></>
+      )}
     </form>
   );
 }
