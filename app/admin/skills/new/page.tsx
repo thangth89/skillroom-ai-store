@@ -8,7 +8,7 @@ export default async function NewSkillPage() {
   await requireAdmin();
 
   return (
-    <AdminShell eyebrow="NỘI DUNG" title="Thêm Skill">
+    <AdminShell eyebrow="CATALOG" title="Add Skill">
       <AdminSkillForm />
     </AdminShell>
   );
