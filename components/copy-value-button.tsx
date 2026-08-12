@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 export function CopyValueButton({
   value,
   label,
-  copiedLabel = "Đã sao chép",
+  copiedLabel = "Copied",
 }: {
   value: string;
   label: string;
