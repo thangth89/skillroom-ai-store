@@ -10,21 +10,34 @@ import type { SkillProduct } from "@/lib/types";
 
 type PublicSkillRow = {
   slug: string;
-  name: string;
-  eyebrow: string;
-  short_description: string;
-  description: string;
-  price: number;
-  category: string;
+  name_en: string;
+  eyebrow_en: string;
+  short_description_en: string;
+  description_en: string;
+  price_usd_cents: number | null;
+  is_free: boolean;
+  category_en: string;
   version: string;
   video_url: string;
   accent: string | null;
   accent_soft: string | null;
   featured: boolean;
-  deliverables: string[];
-  outcomes: string[];
-  requirements: string[];
+  deliverables_en: string[];
+  outcomes_en: string[];
+  requirements_en: string[];
 };
+
+function isMissingInternationalFieldsError(error: { code?: string; message: string } | null) {
+  if (!error) return false;
+  const message = error.message.toLowerCase();
+  return (
+    error.code === "42703" ||
+    error.code === "PGRST204" ||
+    message.includes("name_en") ||
+    message.includes("price_usd_cents") ||
+    message.includes("is_free")
+  );
+}
 
 function isMissingSortOrderError(error: { code?: string; message: string } | null) {
   if (!error) return false;
@@ -37,39 +50,41 @@ function isMissingSortOrderError(error: { code?: string; message: string } | nul
 
 const publicSkillColumns = [
   "slug",
-  "name",
-  "eyebrow",
-  "short_description",
-  "description",
-  "price",
-  "category",
+  "name_en",
+  "eyebrow_en",
+  "short_description_en",
+  "description_en",
+  "price_usd_cents",
+  "is_free",
+  "category_en",
   "version",
   "video_url",
   "accent",
   "accent_soft",
   "featured",
-  "deliverables",
-  "outcomes",
-  "requirements",
+  "deliverables_en",
+  "outcomes_en",
+  "requirements_en",
 ].join(",");
 
 function mapSkill(row: PublicSkillRow): SkillProduct {
   return {
     slug: row.slug,
-    name: row.name,
-    eyebrow: row.eyebrow,
-    shortDescription: row.short_description,
-    description: row.description,
-    price: row.price,
-    category: row.category,
+    name: row.name_en,
+    eyebrow: row.eyebrow_en,
+    shortDescription: row.short_description_en,
+    description: row.description_en,
+    priceUsdCents: row.price_usd_cents,
+    isFree: row.is_free,
+    category: row.category_en,
     version: row.version,
     videoSrc: row.video_url,
     accent: row.accent || "#b8ff6a",
     accentSoft: row.accent_soft || "#19351e",
     featured: row.featured,
-    deliverables: row.deliverables ?? [],
-    outcomes: row.outcomes ?? [],
-    requirements: row.requirements ?? [],
+    deliverables: row.deliverables_en ?? [],
+    outcomes: row.outcomes_en ?? [],
+    requirements: row.requirements_en ?? [],
   };
 }
 
@@ -78,28 +93,36 @@ function publishedSkillsQuery() {
     .from("skills")
     .select(publicSkillColumns)
     .eq("status", "published")
+    .not("name_en", "is", null)
+    .neq("name_en", "")
     .not("video_url", "is", null)
     .not("file_path", "is", null);
 }
 
 async function countPublishedSkills() {
-  if (!hasAdminDataConfig()) return 0;
+  if (!hasAdminDataConfig()) return { total: 0, internationalReady: false };
 
   const { count, error } = await createAdminClient()
     .from("skills")
     .select("id", { count: "exact", head: true })
     .eq("status", "published")
+    .not("name_en", "is", null)
+    .neq("name_en", "")
     .not("video_url", "is", null)
     .not("file_path", "is", null);
 
-  return error ? 0 : count ?? 0;
+  if (isMissingInternationalFieldsError(error)) {
+    return { total: 0, internationalReady: false };
+  }
+  return { total: error ? 0 : count ?? 0, internationalReady: !error };
 }
 
 export async function getCatalogPage(page: number) {
   if (!hasAdminDataConfig()) return getDemoSkillsPage(page);
 
-  const total = await countPublishedSkills();
-  if (total === 0) return getDemoSkillsPage(page);
+  const count = await countPublishedSkills();
+  if (!count.internationalReady || count.total === 0) return getDemoSkillsPage(page);
+  const total = count.total;
 
   const pages = Math.max(1, Math.ceil(total / pageSize));
   const safePage = Math.min(Math.max(Math.trunc(page) || 1, 1), pages);
@@ -118,7 +141,7 @@ export async function getCatalogPage(page: number) {
         .returns<PublicSkillRow[]>()
     : orderedResult;
 
-  if (error || !data) return getDemoSkillsPage(page);
+  if (error || !data || isMissingInternationalFieldsError(error)) return getDemoSkillsPage(page);
 
   return {
     items: data.map(mapSkill),
@@ -136,9 +159,10 @@ export async function getCatalogSkill(slug: string) {
     .maybeSingle<PublicSkillRow>();
 
   if (!error && data) return mapSkill(data);
+  if (isMissingInternationalFieldsError(error)) return getDemoSkill(slug);
 
-  const total = await countPublishedSkills();
-  return total === 0 ? getDemoSkill(slug) : undefined;
+  const count = await countPublishedSkills();
+  return count.total === 0 ? getDemoSkill(slug) : undefined;
 }
 
 export async function getCatalogSkillOrFirst(slug: string) {
