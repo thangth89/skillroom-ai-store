@@ -24,6 +24,16 @@ export type SkillRecord = {
   deliverables: string[];
   outcomes: string[];
   requirements: string[];
+  name_en?: string | null;
+  eyebrow_en?: string | null;
+  short_description_en?: string | null;
+  description_en?: string | null;
+  category_en?: string | null;
+  price_usd_cents?: number | null;
+  is_free?: boolean;
+  deliverables_en?: string[];
+  outcomes_en?: string[];
+  requirements_en?: string[];
   created_at: string;
   updated_at: string;
 };
