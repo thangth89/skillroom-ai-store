@@ -8,6 +8,7 @@ export type SkillProduct = {
   description: string;
   priceUsdCents: number | null;
   isFree: boolean;
+  lemonCheckoutUrl: string | null;
   category: SkillCategory;
   version: string;
   videoSrc: string;
