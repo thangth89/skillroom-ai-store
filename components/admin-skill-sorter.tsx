@@ -94,7 +94,7 @@ export function AdminSkillSorter({
           <span>Position</span>
           <span>Skill</span>
           <span>Category</span>
-          <span>International price</span>
+          <span>Sales type / Price</span>
           <span>Status / Controls</span>
         </div>
 
@@ -129,7 +129,13 @@ export function AdminSkillSorter({
                 <small>{skill.version} · /{skill.slug}</small>
               </span>
               <span>{displayCategory}</span>
-              <span>{displayPrice}</span>
+              <span className="skill-sales-cell">
+                <i className={`skill-sales-badge ${skill.is_free ? "free" : "paid"}`}>
+                  {skill.is_free ? "Free" : "Paid"}
+                </i>
+                <strong>{displayPrice}</strong>
+                {!skill.is_free && !skill.lemon_checkout_url ? <small>Checkout URL missing</small> : null}
+              </span>
               <span className="skill-sort-status">
                 <i className={`skill-status ${skill.status}`}>{statusLabel[skill.status]}</i>
                 <Link href={`/admin/skills/${skill.id}`}>Edit</Link>
