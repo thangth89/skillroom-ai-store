@@ -100,6 +100,16 @@ export function AdminSkillForm({ skill }: { skill?: SkillRecord }) {
             <span>Đây là Free Skill — chỉ cần email, không thanh toán</span>
           </label>
           <label className="wide-field">
+            <span>Lemon Squeezy Checkout URL</span>
+            <input
+              defaultValue={skill?.lemon_checkout_url ?? ""}
+              name="lemon_checkout_url"
+              placeholder="https://your-store.lemonsqueezy.com/checkout/buy/..."
+              type="url"
+            />
+            <small>Mỗi Skill trả phí dùng một Checkout URL riêng. Free Skill để trống.</small>
+          </label>
+          <label className="wide-field">
             <span>English eyebrow</span>
             <input defaultValue={skill?.eyebrow_en ?? ""} name="eyebrow_en" />
           </label>
