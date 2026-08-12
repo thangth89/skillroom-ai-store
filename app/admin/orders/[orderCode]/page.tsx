@@ -9,7 +9,7 @@ import {
 } from "@/lib/admin-order-details";
 import { hasEmailDeliveryConfig } from "@/lib/delivery";
 import { DOWNLOAD_LIMIT } from "@/lib/downloads";
-import { formatVnd } from "@/lib/format";
+import { formatOrderAmount } from "@/lib/format";
 import { getOrderTransferContent, type OrderStatus } from "@/lib/orders";
 import { requireAdmin } from "@/lib/supabase/admin";
 
@@ -70,6 +70,7 @@ export default async function AdminOrderDetailPage({
   const amountMismatch = payments.some((payment) =>
     payment.status.toUpperCase().includes("MISMATCH"),
   );
+  const isLemonSqueezyOrder = payments.some((payment) => payment.provider === "lemonsqueezy");
   const totalDownloads = tokens.reduce((sum, token) => sum + token.download_count, 0);
   const lastDownload = tokens
     .map((token) => token.used_at)
@@ -102,7 +103,7 @@ export default async function AdminOrderDetailPage({
               Mở payOS ↗
             </a>
           ) : null}
-          {order.status === "paid" ? (
+          {order.status === "paid" && !isLemonSqueezyOrder ? (
             <form action={resendOrderEmail}>
               <input name="order_id" type="hidden" value={order.id} />
               <input name="return_to" type="hidden" value={returnTo} />
@@ -179,7 +180,7 @@ export default async function AdminOrderDetailPage({
         </article>
         <article>
           <span>TỔNG THANH TOÁN</span>
-          <strong>{formatVnd(order.total)}</strong>
+          <strong>{formatOrderAmount(order.total, order.currency)}</strong>
           <small>{order.currency}</small>
         </article>
         <article>
@@ -217,7 +218,7 @@ export default async function AdminOrderDetailPage({
             </div>
             <div>
               <dt>Tạm tính</dt>
-              <dd>{formatVnd(order.subtotal)}</dd>
+              <dd>{formatOrderAmount(order.subtotal, order.currency)}</dd>
             </div>
             <div>
               <dt>Mã payOS</dt>
@@ -232,7 +233,7 @@ export default async function AdminOrderDetailPage({
               <dd className="break-value">{order.payos_payment_link_id ?? "Chưa có"}</dd>
             </div>
           </dl>
-          {order.status === "paid" ? (
+          {order.status === "paid" && !isLemonSqueezyOrder ? (
             <form action={updateOrderEmailAndResend} className="order-email-correction">
               <input name="order_id" type="hidden" value={order.id} />
               <input name="return_to" type="hidden" value={returnTo} />
@@ -273,7 +274,7 @@ export default async function AdminOrderDetailPage({
                   <div>
                     <strong>{item.skill_name}</strong>
                     <span>
-                      Phiên bản {item.version} · {item.quantity} × {formatVnd(item.unit_price)}
+                      Phiên bản {item.version} · {item.quantity} × {formatOrderAmount(item.unit_price, order.currency)}
                     </span>
                   </div>
                   <dl className="order-detail-list compact">
@@ -301,7 +302,7 @@ export default async function AdminOrderDetailPage({
           <div className="panel-heading">
             <div>
               <span>THANH TOÁN</span>
-              <h2>Lịch sử xác nhận payOS</h2>
+              <h2>Lịch sử thanh toán</h2>
             </div>
           </div>
           {payments.length === 0 ? (
@@ -317,7 +318,7 @@ export default async function AdminOrderDetailPage({
                       <span className={`token-status ${mismatch ? "expired" : "ready"}`}>
                         {paymentStatusLabel[normalizedStatus] ?? payment.status}
                       </span>
-                      <strong>{formatVnd(payment.amount)}</strong>
+                      <strong>{formatOrderAmount(payment.amount, order.currency)}</strong>
                     </div>
                     <span>{formatDateTime(payment.created_at)}</span>
                     <small>
