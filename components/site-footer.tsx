@@ -9,22 +9,22 @@ export function SiteFooter() {
             <span className="brand-mark">S</span>
             <span>Skillroom</span>
           </Link>
-          <p className="footer-note">Skill AI được kiểm thử bằng video, giao tự động sau thanh toán.</p>
+          <p className="footer-note">Video-verified AI Skills, delivered securely to your inbox.</p>
         </div>
         <div className="footer-links">
-          <p>Sản phẩm</p>
-          <Link href="/skills">Kho Skill</Link>
-          <Link href="/support">Cách sử dụng</Link>
+          <p>Products</p>
+          <Link href="/skills">Skill Library</Link>
+          <Link href="/support">How it works</Link>
         </div>
         <div className="footer-links">
-          <p>Thông tin</p>
-          <Link href="/legal/terms">Điều khoản</Link>
-          <Link href="/legal/privacy">Bảo mật</Link>
+          <p>Information</p>
+          <Link href="/legal/terms">Terms</Link>
+          <Link href="/legal/privacy">Privacy</Link>
         </div>
       </div>
       <div className="shell footer-bottom">
         <span>© 2026 Skillroom</span>
-        <span>Sản phẩm số • Giao qua email</span>
+        <span>Digital products • Delivered by email</span>
       </div>
     </footer>
   );
