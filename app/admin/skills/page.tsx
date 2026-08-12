@@ -11,11 +11,11 @@ export default async function AdminSkillsPage() {
 
   if (!hasAdminDataConfig()) {
     return (
-      <AdminShell eyebrow="NỘI DUNG" title="Quản lý Skill">
+      <AdminShell eyebrow="CATALOG" title="Manage Skills">
         <section className="admin-panel empty-panel">
           <div className="empty-mark">!</div>
-          <h2>Thiếu cấu hình máy chủ.</h2>
-          <p>Kiểm tra SUPABASE_SECRET_KEY và SKILL_STORAGE_BUCKET trên Vercel rồi redeploy.</p>
+          <h2>Server configuration is incomplete.</h2>
+          <p>Check SUPABASE_SECRET_KEY and SKILL_STORAGE_BUCKET on Vercel, then redeploy.</p>
         </section>
       </AdminShell>
     );
@@ -24,24 +24,24 @@ export default async function AdminSkillsPage() {
   const { data: skills, error, sortReady } = await listAdminSkills();
 
   return (
-    <AdminShell eyebrow="NỘI DUNG" title="Quản lý Skill">
+    <AdminShell eyebrow="CATALOG" title="Manage Skills">
       <section className="admin-panel">
         <div className="panel-heading">
           <div>
-            <span>{skills?.length ?? 0} SẢN PHẨM THẬT</span>
-            <h2>Danh sách Skill</h2>
+            <span>{skills?.length ?? 0} SHARED SKILL RECORDS</span>
+            <h2>International Skill catalog</h2>
           </div>
           <Link className="primary-button" href="/admin/skills/new">
-            + Thêm Skill
+            + Add Skill
           </Link>
         </div>
 
-        {error ? <div className="admin-form-error">Không thể đọc dữ liệu: {error.message}</div> : null}
+        {error ? <div className="admin-form-error">Unable to load data: {error.message}</div> : null}
 
         {!error && skills?.length === 0 ? (
           <div className="admin-list-empty">
-            <strong>Chưa có Skill thật trong Supabase.</strong>
-            <p>12 sản phẩm mẫu ngoài cửa hàng vẫn được giữ nguyên. Hãy tạo Skill đầu tiên tại đây.</p>
+            <strong>No Skill records are available in Supabase.</strong>
+            <p>Create the first Skill here. Records are shared with the Vietnamese store.</p>
           </div>
         ) : null}
 
