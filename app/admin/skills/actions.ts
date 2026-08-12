@@ -88,7 +88,8 @@ function parseSkill(formData: FormData):
   const descriptionEn = getText(formData, "description_en");
   const categoryEn = getText(formData, "category_en");
   const usdPriceText = getText(formData, "price_usd");
-  const isFree = formData.get("is_free") === "on";
+  const saleType = getText(formData, "sale_type");
+  const isFree = saleType === "free";
   const lemonCheckoutValue = getText(formData, "lemon_checkout_url");
   const usdPrice = usdPriceText === "" ? null : Number(usdPriceText);
   const priceUsdCents = isFree ? 0 : usdPrice === null ? null : Math.round(usdPrice * 100);
@@ -147,8 +148,16 @@ function parseSkill(formData: FormData):
     };
   }
 
-  if (nameEn && !isFree && (priceUsdCents === null || !Number.isSafeInteger(priceUsdCents) || priceUsdCents < 0)) {
-    return { data: null, error: "Enter a valid USD price for this paid international Skill." };
+  if (saleType !== "free" && saleType !== "paid") {
+    return { data: null, error: "Choose Free Skill or Paid Skill for the international store." };
+  }
+
+  if (nameEn && !isFree && (priceUsdCents === null || !Number.isSafeInteger(priceUsdCents) || priceUsdCents <= 0)) {
+    return { data: null, error: "Enter a USD price greater than $0 for this paid international Skill." };
+  }
+
+  if (nameEn && statusValue === "published" && !isFree && !lemonCheckoutUrl) {
+    return { data: null, error: "Add the Lemon Squeezy Checkout URL before publishing this paid Skill." };
   }
 
   let videoUrl: string | null = null;
