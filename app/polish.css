@@ -274,6 +274,8 @@ h1, h2, h3, p { text-wrap: pretty; }
 .skill-card-body > p { min-height: 0; margin: 0; color: var(--muted); font-size: 13px; line-height: 1.65; }
 .card-bottom { margin-top: 20px; border-top: 1px solid var(--line); padding-top: 17px; }
 .card-bottom strong { color: var(--ink); font-size: 16px; font-weight: 800; }
+.card-bottom strong.free-price,
+.detail-buy-row strong.free-price { color: var(--success); }
 .text-link { color: var(--brand); font-size: 12px; font-weight: 750; }
 .text-link:hover { color: var(--brand-dark); }
 .catalog-more { margin-top: 36px; border-top: 1px solid #ccd8ce; padding-top: 24px; }
@@ -363,7 +365,7 @@ h1, h2, h3, p { text-wrap: pretty; }
 }
 .detail-content h2 { font-size: 23px; font-weight: 750; line-height: 1.25; }
 .detail-content ul { gap: 12px; margin-top: 24px; }
-.detail-content ul:empty::after { color: var(--muted); content: "Thông tin đang được cập nhật."; font-size: 13px; }
+.detail-content ul:empty::after { color: var(--muted); content: "Details are being prepared."; font-size: 13px; }
 .detail-content li { padding-left: 21px; color: var(--muted); font-size: 13px; line-height: 1.65; }
 .detail-content li::before { color: var(--brand); content: "✓"; font-weight: 800; }
 .detail-cta { gap: 40px; margin-block: 64px; border-radius: 22px; background: var(--brand-dark); padding: 38px 42px; }
@@ -381,6 +383,10 @@ h1, h2, h3, p { text-wrap: pretty; }
 .checkout-form input[type="email"] { height: 54px; border-color: #bdc9c0; border-radius: 11px; background: #fff; font-size: 14px; }
 .field-help, .secure-note { color: var(--muted); font-size: 11px; }
 .check-row { margin: 20px 0; font-size: 12px; }
+.check-row.optional-consent { margin-top: -8px; }
+.form-success { margin: 14px 0; border: 1px solid #aed0b8; border-radius: 10px; background: #e8f5eb; padding: 12px 14px; color: #21633d; font-size: 12px; line-height: 1.55; }
+.payment-method-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 7px; margin-top: 16px; }
+.payment-method-list span { display: inline-flex; min-height: 28px; align-items: center; border: 1px solid #cbd5cd; border-radius: 7px; background: #fff; padding: 0 9px; color: #39483e; font-size: 9px; font-weight: 800; letter-spacing: .02em; }
 .order-summary { top: 92px; border-radius: 20px; background: var(--brand-dark); padding: 26px; box-shadow: var(--shadow-md); }
 .order-summary > span { font-family: var(--font-sans); }
 .summary-preview { min-height: 170px; margin: 18px 0 22px; }
@@ -472,6 +478,7 @@ h1, h2, h3, p { text-wrap: pretty; }
 /* Admin forms and order detail */
 .admin-skill-form { gap: 15px; }
 .admin-form-section { grid-template-columns: minmax(190px, .5fr) minmax(0, 1.5fr); gap: 34px; border-radius: 15px; padding: 25px; }
+.admin-form-section.international-fields { border-color: #b9d7c2; background: #f4faf5; }
 .admin-form-heading > span { color: var(--brand); font-size: 10px; }
 .admin-form-heading > p { margin-top: 8px; color: var(--muted); font-size: 12px; line-height: 1.65; }
 .admin-form-grid { gap: 17px; }
