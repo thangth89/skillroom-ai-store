@@ -2,7 +2,15 @@
 
 import { useState } from "react";
 
-export function CheckoutForm({ slug, isFree }: { slug: string; isFree: boolean }) {
+export function CheckoutForm({
+  slug,
+  isFree,
+  checkoutUrl,
+}: {
+  slug: string;
+  isFree: boolean;
+  checkoutUrl: string | null;
+}) {
   const [email, setEmail] = useState("");
   const [agreed, setAgreed] = useState(false);
   const [error, setError] = useState("");
@@ -24,7 +32,20 @@ export function CheckoutForm({ slug, isFree }: { slug: string; isFree: boolean }
     setSuccess("");
 
     if (!isFree) {
-      setError("International checkout is not connected yet. No payment has been taken.");
+      if (!checkoutUrl) {
+        setError("Checkout is not available for this Skill yet. No payment has been taken.");
+        return;
+      }
+
+      try {
+        const url = new URL(checkoutUrl);
+        url.searchParams.set("checkout[email]", email);
+        url.searchParams.set("checkout[custom][skill_slug]", slug);
+        url.searchParams.set("checkout[custom][source]", "skillroom_en");
+        window.location.assign(url.toString());
+      } catch {
+        setError("The secure checkout link is invalid. Please contact support.");
+      }
       return;
     }
 
@@ -82,7 +103,7 @@ export function CheckoutForm({ slug, isFree }: { slug: string; isFree: boolean }
       {isFree ? (
         <p className="secure-note">No payment required • Your download link stays private</p>
       ) : (
-        <><div className="payment-method-list" aria-label="Planned payment methods"><span>VISA</span><span>Mastercard</span><span>PayPal</span><span>Apple Pay</span><span>G Pay</span></div><p className="secure-note">Checkout interface ready • Lemon Squeezy connection pending</p></>
+        <><div className="payment-method-list" aria-label="Supported payment methods"><span>VISA</span><span>Mastercard</span><span>PayPal</span><span>Apple Pay</span><span>G Pay</span></div><p className="secure-note">Secure payment and digital delivery by Lemon Squeezy</p></>
       )}
     </form>
   );
