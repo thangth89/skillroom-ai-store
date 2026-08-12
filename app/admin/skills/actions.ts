@@ -44,6 +44,7 @@ type ParsedSkill = {
   category_en: string;
   price_usd_cents: number | null;
   is_free: boolean;
+  lemon_checkout_url: string | null;
   deliverables_en: string[];
   outcomes_en: string[];
   requirements_en: string[];
@@ -88,8 +89,22 @@ function parseSkill(formData: FormData):
   const categoryEn = getText(formData, "category_en");
   const usdPriceText = getText(formData, "price_usd");
   const isFree = formData.get("is_free") === "on";
+  const lemonCheckoutValue = getText(formData, "lemon_checkout_url");
   const usdPrice = usdPriceText === "" ? null : Number(usdPriceText);
   const priceUsdCents = isFree ? 0 : usdPrice === null ? null : Math.round(usdPrice * 100);
+
+  let lemonCheckoutUrl: string | null = null;
+  if (lemonCheckoutValue && !isFree) {
+    try {
+      const parsedUrl = new URL(lemonCheckoutValue);
+      if (parsedUrl.protocol !== "https:" || !parsedUrl.pathname.startsWith("/checkout/buy/")) {
+        throw new Error("invalid checkout URL");
+      }
+      lemonCheckoutUrl = `${parsedUrl.origin}${parsedUrl.pathname}`;
+    } catch {
+      return { data: null, error: "Lemon Squeezy Checkout URL không hợp lệ." };
+    }
+  }
 
   if (usdPriceText && (!Number.isFinite(usdPrice) || usdPrice! < 0 || usdPrice! > 1000000)) {
     return { data: null, error: "Giá USD phải là số hợp lệ từ 0 đến 1.000.000." };
@@ -179,6 +194,7 @@ function parseSkill(formData: FormData):
       category_en: categoryEn,
       price_usd_cents: priceUsdCents,
       is_free: isFree,
+      lemon_checkout_url: lemonCheckoutUrl,
       deliverables_en: getList(formData, "deliverables_en"),
       outcomes_en: getList(formData, "outcomes_en"),
       requirements_en: getList(formData, "requirements_en"),
