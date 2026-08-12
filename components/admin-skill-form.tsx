@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import {
   createSkill,
   updateSkill,
@@ -18,6 +18,9 @@ function lines(items: string[] | undefined) {
 export function AdminSkillForm({ skill }: { skill?: SkillRecord }) {
   const action = skill ? updateSkill : createSkill;
   const [state, formAction, pending] = useActionState(action, initialState);
+  const [saleType, setSaleType] = useState<"free" | "paid">(
+    skill?.is_free ? "free" : "paid",
+  );
 
   return (
     <form action={formAction} className="admin-skill-form">
@@ -80,9 +83,40 @@ export function AdminSkillForm({ skill }: { skill?: SkillRecord }) {
       <section className="admin-form-section international-fields">
         <div className="admin-form-heading">
           <span>INTERNATIONAL STOREFRONT</span>
-          <p>English content and USD pricing. Leave the English name blank to keep this Skill off the international store.</p>
+          <p>Choose how this Skill is offered, then add its English content. Leave the English name blank to keep it off the international store.</p>
         </div>
         <div className="admin-form-grid">
+          <fieldset className="sale-type-field wide-field">
+            <legend>Sales type *</legend>
+            <div className="sale-type-options">
+              <label className={saleType === "free" ? "selected" : ""}>
+                <input
+                  checked={saleType === "free"}
+                  name="sale_type"
+                  onChange={() => setSaleType("free")}
+                  type="radio"
+                  value="free"
+                />
+                <span>
+                  <strong>Free Skill</strong>
+                  <small>Customer enters an email address and receives a private download link. No payment.</small>
+                </span>
+              </label>
+              <label className={saleType === "paid" ? "selected" : ""}>
+                <input
+                  checked={saleType === "paid"}
+                  name="sale_type"
+                  onChange={() => setSaleType("paid")}
+                  type="radio"
+                  value="paid"
+                />
+                <span>
+                  <strong>Paid Skill</strong>
+                  <small>Customer pays through Lemon Squeezy using an available card, PayPal or wallet.</small>
+                </span>
+              </label>
+            </div>
+          </fieldset>
           <label className="wide-field">
             <span>English Skill name</span>
             <input defaultValue={skill?.name_en ?? ""} maxLength={120} name="name_en" />
@@ -91,24 +125,37 @@ export function AdminSkillForm({ skill }: { skill?: SkillRecord }) {
             <span>English category</span>
             <input defaultValue={skill?.category_en ?? ""} name="category_en" placeholder="Model Assembly" />
           </label>
-          <label>
-            <span>International price (USD)</span>
-            <input defaultValue={skill?.price_usd_cents == null ? "" : skill.price_usd_cents / 100} min={0} name="price_usd" step="0.01" type="number" />
-          </label>
-          <label className="checkbox-field">
-            <input defaultChecked={skill?.is_free ?? false} name="is_free" type="checkbox" />
-            <span>Free Skill — email delivery, no payment required</span>
-          </label>
-          <label className="wide-field">
-            <span>Lemon Squeezy Checkout URL</span>
-            <input
-              defaultValue={skill?.lemon_checkout_url ?? ""}
-              name="lemon_checkout_url"
-              placeholder="https://your-store.lemonsqueezy.com/checkout/buy/..."
-              type="url"
-            />
-            <small>Use one unique Checkout URL for each paid Skill. Leave blank for a Free Skill.</small>
-          </label>
+          {saleType === "free" ? (
+            <div className="sale-type-summary wide-field free">
+              <strong>Free delivery is active</strong>
+              <span>The uploaded Skill file will be sent by email. The storefront price will display as Free.</span>
+            </div>
+          ) : (
+            <>
+              <label>
+                <span>International price (USD) *</span>
+                <input
+                  defaultValue={skill?.price_usd_cents == null ? "" : skill.price_usd_cents / 100}
+                  min="0.01"
+                  name="price_usd"
+                  placeholder="9.00"
+                  step="0.01"
+                  type="number"
+                />
+                <small>Enter the price you set for the matching Lemon Squeezy product.</small>
+              </label>
+              <label className="wide-field">
+                <span>Lemon Squeezy Checkout URL *</span>
+                <input
+                  defaultValue={skill?.lemon_checkout_url ?? ""}
+                  name="lemon_checkout_url"
+                  placeholder="https://your-store.lemonsqueezy.com/checkout/buy/..."
+                  type="url"
+                />
+                <small>Use the unique Checkout URL for this Skill. It is required before publishing a paid Skill.</small>
+              </label>
+            </>
+          )}
           <label className="wide-field">
             <span>English eyebrow</span>
             <input defaultValue={skill?.eyebrow_en ?? ""} name="eyebrow_en" />
