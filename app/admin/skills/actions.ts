@@ -37,6 +37,16 @@ type ParsedSkill = {
   deliverables: string[];
   outcomes: string[];
   requirements: string[];
+  name_en: string | null;
+  eyebrow_en: string;
+  short_description_en: string;
+  description_en: string;
+  category_en: string;
+  price_usd_cents: number | null;
+  is_free: boolean;
+  deliverables_en: string[];
+  outcomes_en: string[];
+  requirements_en: string[];
 };
 
 const statuses = new Set<SkillStatus>(["draft", "published", "archived"]);
@@ -71,6 +81,19 @@ function parseSkill(formData: FormData):
   const videoValue = getText(formData, "video_url");
   const accent = getText(formData, "accent") || "#b8ff6a";
   const accentSoft = getText(formData, "accent_soft") || "#19351e";
+  const nameEn = getText(formData, "name_en");
+  const eyebrowEn = getText(formData, "eyebrow_en");
+  const shortDescriptionEn = getText(formData, "short_description_en");
+  const descriptionEn = getText(formData, "description_en");
+  const categoryEn = getText(formData, "category_en");
+  const usdPriceText = getText(formData, "price_usd");
+  const isFree = formData.get("is_free") === "on";
+  const usdPrice = usdPriceText === "" ? null : Number(usdPriceText);
+  const priceUsdCents = isFree ? 0 : usdPrice === null ? null : Math.round(usdPrice * 100);
+
+  if (usdPriceText && (!Number.isFinite(usdPrice) || usdPrice! < 0 || usdPrice! > 1000000)) {
+    return { data: null, error: "Giá USD phải là số hợp lệ từ 0 đến 1.000.000." };
+  }
 
   if (!name || name.length > 120) {
     return { data: null, error: "Tên Skill là bắt buộc và tối đa 120 ký tự." };
@@ -100,6 +123,17 @@ function parseSkill(formData: FormData):
 
   if (!/^#[0-9a-fA-F]{6}$/.test(accent) || !/^#[0-9a-fA-F]{6}$/.test(accentSoft)) {
     return { data: null, error: "Màu giao diện phải ở dạng mã HEX, ví dụ #b8ff6a." };
+  }
+
+  if (nameEn && (!categoryEn || !shortDescriptionEn || !descriptionEn)) {
+    return {
+      data: null,
+      error: "Đã nhập tên tiếng Anh thì cần nhập đủ nhóm, mô tả thẻ và mô tả chi tiết tiếng Anh.",
+    };
+  }
+
+  if (nameEn && !isFree && (priceUsdCents === null || !Number.isSafeInteger(priceUsdCents) || priceUsdCents < 0)) {
+    return { data: null, error: "Hãy nhập giá USD hợp lệ cho Skill quốc tế trả phí." };
   }
 
   let videoUrl: string | null = null;
@@ -138,6 +172,16 @@ function parseSkill(formData: FormData):
       deliverables: getList(formData, "deliverables"),
       outcomes: getList(formData, "outcomes"),
       requirements: getList(formData, "requirements"),
+      name_en: nameEn || null,
+      eyebrow_en: eyebrowEn,
+      short_description_en: shortDescriptionEn,
+      description_en: descriptionEn,
+      category_en: categoryEn,
+      price_usd_cents: priceUsdCents,
+      is_free: isFree,
+      deliverables_en: getList(formData, "deliverables_en"),
+      outcomes_en: getList(formData, "outcomes_en"),
+      requirements_en: getList(formData, "requirements_en"),
     },
     error: "",
   };
