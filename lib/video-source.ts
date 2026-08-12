@@ -49,7 +49,7 @@ function getInstagramEmbed(url: URL) {
 export function parseVideoSource(src: string): ParsedVideoSource {
   const url = getUrl(src);
   if (!url || url.hostname === "skillroom.local") {
-    return { provider: "file", providerLabel: "Video kết quả", embedUrl: null, posterUrl: null };
+    return { provider: "file", providerLabel: "Result video", embedUrl: null, posterUrl: null };
   }
 
   const host = cleanHost(url.hostname);
@@ -99,5 +99,5 @@ export function parseVideoSource(src: string): ParsedVideoSource {
     }
   }
 
-  return { provider: "file", providerLabel: "Video kết quả", embedUrl: null, posterUrl: null };
+  return { provider: "file", providerLabel: "Result video", embedUrl: null, posterUrl: null };
 }
