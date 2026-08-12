@@ -30,12 +30,12 @@ export async function GET(
   const { token } = await params;
   const access = await getDownloadAccess(token);
 
-  if (access.status === "invalid") return errorResponse("Liên kết tải không hợp lệ.", 404);
-  if (access.status === "expired") return errorResponse("Liên kết tải đã hết hạn.", 410);
+  if (access.status === "invalid") return errorResponse("The download link is invalid.", 404);
+  if (access.status === "expired") return errorResponse("The download link has expired.", 410);
   if (access.status === "exhausted") {
-    return errorResponse(`Liên kết đã sử dụng đủ ${DOWNLOAD_LIMIT} lượt tải.`, 429);
+    return errorResponse(`The link has reached its ${DOWNLOAD_LIMIT}-download limit.`, 429);
   }
-  if (access.status !== "ready") return errorResponse("File Skill hiện không khả dụng.", 403);
+  if (access.status !== "ready") return errorResponse("The Skill file is not available.", 403);
 
   const supabase = createAdminClient();
   const fileName = safeDownloadName(
@@ -47,7 +47,7 @@ export async function GET(
     .from(getSkillStorageBucket())
     .createSignedUrl(access.item.file_path, 60, { download: fileName });
 
-  if (error || !data?.signedUrl) return errorResponse("Không thể tạo đường dẫn tải file.", 500);
+  if (error || !data?.signedUrl) return errorResponse("We could not create the file download.", 500);
 
   const { data: updated, error: updateError } = await supabase
     .from("download_tokens")
@@ -61,7 +61,7 @@ export async function GET(
     .maybeSingle<{ id: string }>();
 
   if (updateError || !updated) {
-    return errorResponse("Có một lượt tải khác vừa được thực hiện. Vui lòng thử lại.", 409);
+    return errorResponse("Another download was just recorded. Please try again.", 409);
   }
 
   return Response.redirect(data.signedUrl, 302);
