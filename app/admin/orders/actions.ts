@@ -28,7 +28,7 @@ async function requestOrigin() {
   const requestHeaders = await headers();
   const host = requestHeaders.get("x-forwarded-host") ?? requestHeaders.get("host");
   const protocol = requestHeaders.get("x-forwarded-proto") ?? "https";
-  if (!host) throw new Error("Không xác định được địa chỉ website.");
+  if (!host) throw new Error("Unable to determine the website address.");
   return `${protocol}://${host}`;
 }
 
@@ -50,7 +50,7 @@ export async function resendOrderEmail(formData: FormData) {
     });
     if (result.status === "not_configured") status = "config";
   } catch (error) {
-    console.error("Không thể gửi lại email đơn hàng:", error);
+    console.error("Unable to resend the order email:", error);
     status = "error";
   }
 
@@ -92,10 +92,10 @@ export async function updateOrderEmailAndResend(formData: FormData) {
   }
 
   try {
-    // Thu hồi trước để email đã nhập sai không thể tiếp tục dùng link cũ.
+    // Revoke first so an incorrect email address cannot keep using the old link.
     await revokeOrderDownloadLinks(order.id);
   } catch (error) {
-    console.error("Không thể thu hồi link tải khi sửa email:", error);
+    console.error("Unable to revoke download links while correcting the email:", error);
     redirect(deliveryDestination(returnTo, "security_error"));
   }
 
@@ -108,7 +108,7 @@ export async function updateOrderEmailAndResend(formData: FormData) {
     });
     if (result.status === "not_configured") status = "email_saved_config";
   } catch (error) {
-    console.error("Đã sửa email nhưng chưa gửi lại được:", error);
+    console.error("The email was corrected, but delivery failed:", error);
     status = "email_saved_error";
   }
 
