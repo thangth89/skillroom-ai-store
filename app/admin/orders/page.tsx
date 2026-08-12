@@ -2,7 +2,7 @@ import Link from "next/link";
 import { resendOrderEmail } from "@/app/admin/orders/actions";
 import { AdminShell } from "@/components/admin-shell";
 import { hasEmailDeliveryConfig } from "@/lib/delivery";
-import { formatVnd } from "@/lib/format";
+import { formatOrderAmount } from "@/lib/format";
 import type { OrderStatus } from "@/lib/orders";
 import { createAdminClient, requireAdmin } from "@/lib/supabase/admin";
 
@@ -22,6 +22,7 @@ type AdminOrder = {
   customer_email: string;
   status: OrderStatus;
   total: number;
+  currency: string;
   payos_order_code: number | null;
   transfer_content: string | null;
   created_at: string;
@@ -65,7 +66,7 @@ export default async function AdminOrdersPage({
     const result = await supabase
       .from("orders")
       .select(
-        "id, order_code, customer_email, status, total, payos_order_code, transfer_content, created_at",
+        "id, order_code, customer_email, status, total, currency, payos_order_code, transfer_content, created_at",
       )
       .order("created_at", { ascending: false })
       .limit(100)
@@ -78,7 +79,7 @@ export default async function AdminOrdersPage({
   if (error && (error.message.includes("transfer_content") || error.message.includes("search_admin_orders"))) {
     const fallback = await supabase
       .from("orders")
-      .select("id, order_code, customer_email, status, total, payos_order_code, created_at")
+      .select("id, order_code, customer_email, status, total, currency, payos_order_code, created_at")
       .order("created_at", { ascending: false })
       .limit(searchTerm.length >= 2 ? 500 : 100)
       .returns<Array<Omit<AdminOrder, "transfer_content">>>();
@@ -175,7 +176,7 @@ export default async function AdminOrdersPage({
                   ) : null}
                 </span>
                 <span>{order.customer_email}</span>
-                <span>{formatVnd(order.total)}</span>
+                <span>{formatOrderAmount(order.total, order.currency)}</span>
                 <span className="order-status-actions">
                   <i className={`order-status ${order.status}`}>{statusLabel[order.status]}</i>
                   {order.status === "paid" ? (
