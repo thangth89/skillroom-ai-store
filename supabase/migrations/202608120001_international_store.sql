@@ -6,6 +6,7 @@ alter table public.skills
   add column if not exists category_en text,
   add column if not exists price_usd_cents integer,
   add column if not exists is_free boolean not null default false,
+  add column if not exists lemon_checkout_url text,
   add column if not exists deliverables_en jsonb not null default '[]'::jsonb,
   add column if not exists outcomes_en jsonb not null default '[]'::jsonb,
   add column if not exists requirements_en jsonb not null default '[]'::jsonb;
