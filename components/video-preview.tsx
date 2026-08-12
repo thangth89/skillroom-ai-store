@@ -112,7 +112,7 @@ export function VideoPreview({ id, src, label, accent, accentSoft, className = "
           controls
           playsInline
           preload="none"
-          aria-label={`Video kết quả ${label}`}
+          aria-label={`Result video for ${label}`}
           onPlay={() => setPlaying(true)}
           onPause={() => setPlaying(false)}
           onEnded={() => setPlaying(false)}
@@ -134,8 +134,8 @@ export function VideoPreview({ id, src, label, accent, accentSoft, className = "
       <div className="video-vignette" />
       <span className="video-badge">{source.providerLabel}</span>
       {!playing && (
-        <button className="play-button" type="button" onClick={() => void play()} aria-label={`Phát video ${label}`}>
-          <span aria-hidden="true">▶</span><b>Xem video</b>
+        <button className="play-button" type="button" onClick={() => void play()} aria-label={`Play video for ${label}`}>
+          <span aria-hidden="true">▶</span><b>Watch video</b>
         </button>
       )}
       {playing && (isFile || source.provider === "youtube") && (
@@ -143,14 +143,14 @@ export function VideoPreview({ id, src, label, accent, accentSoft, className = "
           className="sound-button"
           type="button"
           onClick={toggleSound}
-          aria-label={muted ? "Bật âm thanh" : "Tắt âm thanh"}
+          aria-label={muted ? "Turn sound on" : "Mute video"}
         >
-          {muted ? "Tắt tiếng" : "Có tiếng"}
+          {muted ? "Muted" : "Sound on"}
         </button>
       )}
       <div className="video-label">
         <span>{label}</span>
-        <small>{playing ? (source.provider === "instagram" ? "Chạm để phát" : "Đang phát") : "Bấm để xem"}</small>
+        <small>{playing ? (source.provider === "instagram" ? "Tap to play" : "Now playing") : "Click to watch"}</small>
       </div>
     </div>
   );
