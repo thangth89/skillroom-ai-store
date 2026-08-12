@@ -16,38 +16,39 @@ import { requireAdmin } from "@/lib/supabase/admin";
 export const dynamic = "force-dynamic";
 
 const statusLabel: Record<OrderStatus, string> = {
-  pending: "Chờ thanh toán",
-  paid: "Đã thanh toán",
-  cancelled: "Đã huỷ",
-  expired: "Hết hạn",
-  refunded: "Đã hoàn tiền",
+  pending: "Pending",
+  paid: "Paid",
+  cancelled: "Cancelled",
+  expired: "Expired",
+  refunded: "Refunded",
 };
 
 const paymentStatusLabel: Record<string, string> = {
-  PAID: "Đã xác nhận",
-  AMOUNT_MISMATCH: "Sai số tiền",
+  PAID: "Confirmed",
+  AMOUNT_MISMATCH: "Amount mismatch",
+  REFUNDED: "Refunded",
 };
 
 function formatDateTime(value: string | null) {
-  if (!value) return "Chưa có";
+  if (!value) return "Not available";
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "Không xác định";
+  if (Number.isNaN(date.getTime())) return "Unknown";
 
-  return new Intl.DateTimeFormat("vi-VN", {
+  return new Intl.DateTimeFormat("en-US", {
     dateStyle: "medium",
     timeStyle: "short",
-    timeZone: "Asia/Ho_Chi_Minh",
+    timeZone: "UTC",
   }).format(date);
 }
 
 function getTokenState(token: AdminDownloadToken) {
   if (token.download_count >= DOWNLOAD_LIMIT) {
-    return { className: "exhausted", label: "Đã hết lượt" };
+    return { className: "exhausted", label: "Limit reached" };
   }
   if (new Date(token.expires_at).getTime() <= Date.now()) {
-    return { className: "expired", label: "Đã hết hạn" };
+    return { className: "expired", label: "Expired" };
   }
-  return { className: "ready", label: "Còn hiệu lực" };
+  return { className: "ready", label: "Active" };
 }
 
 export default async function AdminOrderDetailPage({
@@ -61,7 +62,7 @@ export default async function AdminOrderDetailPage({
   const [{ orderCode }, query] = await Promise.all([params, searchParams]);
   const details = await getAdminOrderDetails(orderCode);
 
-  if (!details.order) notFound();
+  if (!details.order || details.order.currency.toUpperCase() === "VND") notFound();
 
   const { order, items, payments, tokens, error } = details;
   const emailReady = hasEmailDeliveryConfig();
@@ -79,28 +80,28 @@ export default async function AdminOrderDetailPage({
     .at(-1);
 
   return (
-    <AdminShell eyebrow="BÁN HÀNG" title="Chi tiết đơn hàng">
+    <AdminShell eyebrow="INTERNATIONAL SALES" title="Order details">
       <div className="order-detail-toolbar">
         <Link className="back-link" href="/admin/orders">
-          ← Quay lại danh sách
+          ← Back to orders
         </Link>
         <div className="order-detail-actions">
-          <CopyValueButton label="Sao chép mã đơn" value={order.order_code} />
-          <CopyValueButton label="Sao chép email" value={order.customer_email} />
+          <CopyValueButton label="Copy order code" value={order.order_code} />
+          <CopyValueButton label="Copy email" value={order.customer_email} />
           {transferContent ? (
-            <CopyValueButton label="Sao chép nội dung CK" value={transferContent} />
+            <CopyValueButton label="Copy payment reference" value={transferContent} />
           ) : null}
           <a className="secondary-button" href={`mailto:${order.customer_email}`}>
-            Gửi email hỗ trợ
+            Email customer
           </a>
-          {order.checkout_url && order.status === "pending" ? (
+          {order.checkout_url ? (
             <a
               className="secondary-button"
               href={order.checkout_url}
               rel="noreferrer"
               target="_blank"
             >
-              Mở payOS ↗
+              View Lemon receipt ↗
             </a>
           ) : null}
           {order.status === "paid" && !isLemonSqueezyOrder ? (
@@ -108,7 +109,7 @@ export default async function AdminOrderDetailPage({
               <input name="order_id" type="hidden" value={order.id} />
               <input name="return_to" type="hidden" value={returnTo} />
               <button className="primary-button" disabled={!emailReady} type="submit">
-                {emailReady ? "Cấp link mới & gửi email" : "Chưa cấu hình email"}
+                {emailReady ? "Create new link & email" : "Email not configured"}
               </button>
             </form>
           ) : null}
@@ -117,81 +118,80 @@ export default async function AdminOrderDetailPage({
 
       {query.delivery === "sent" ? (
         <div className="admin-form-success">
-          Đã tạo liên kết tải mới và gửi email đến {order.customer_email}.
+          A new download link was created and emailed to {order.customer_email}.
         </div>
       ) : null}
       {query.delivery === "config" ? (
         <div className="admin-form-error">
-          Chưa cấu hình RESEND_API_KEY và EMAIL_FROM trên Vercel.
+          RESEND_API_KEY and EMAIL_FROM are not configured on Vercel.
         </div>
       ) : null}
       {query.delivery === "error" ? (
         <div className="admin-form-error">
-          Không thể gửi email. Hãy kiểm tra Resend Logs và cấu hình máy chủ.
+          The email could not be sent. Check Resend Logs and server configuration.
         </div>
       ) : null}
       {query.delivery === "invalid" ? (
-        <div className="admin-form-error">Mã đơn hàng không hợp lệ.</div>
+        <div className="admin-form-error">The order code is invalid.</div>
       ) : null}
       {query.delivery === "corrected" ? (
         <div className="admin-form-success">
-          Đã cập nhật email, thu hồi các link tải cũ và gửi link mới đến {order.customer_email}.
+          The email was updated, old links were revoked and a new link was sent to {order.customer_email}.
         </div>
       ) : null}
       {query.delivery === "email_invalid" ? (
-        <div className="admin-form-error">Email mới hoặc mã đơn không hợp lệ.</div>
+        <div className="admin-form-error">The new email or order code is invalid.</div>
       ) : null}
       {query.delivery === "email_update_error" ? (
-        <div className="admin-form-error">Không thể cập nhật email của đơn hàng.</div>
+        <div className="admin-form-error">The order email could not be updated.</div>
       ) : null}
       {query.delivery === "not_paid" ? (
-        <div className="admin-form-error">Chỉ sửa email và cấp lại link cho đơn đã thanh toán.</div>
+        <div className="admin-form-error">Email correction is only available for paid orders.</div>
       ) : null}
       {query.delivery === "security_error" ? (
         <div className="admin-form-error">
-          Email đã được sửa nhưng chưa thể thu hồi link cũ. Không gửi lại file trước khi kiểm tra Supabase.
+          The email was changed, but the old link could not be revoked. Check Supabase before delivering the file again.
         </div>
       ) : null}
       {query.delivery === "email_saved_config" ? (
         <div className="admin-form-error">
-          Email đã được sửa và link cũ đã thu hồi, nhưng Vercel chưa cấu hình Resend.
+          The email was changed and old links were revoked, but Resend is not configured on Vercel.
         </div>
       ) : null}
       {query.delivery === "email_saved_error" ? (
         <div className="admin-form-error">
-          Email đã được sửa và link cũ đã thu hồi, nhưng chưa gửi được email mới. Kiểm tra Resend Logs rồi bấm gửi lại.
+          The email was changed and old links were revoked, but the new email failed. Check Resend Logs and try again.
         </div>
       ) : null}
       {error ? (
-        <div className="admin-form-error">Một phần dữ liệu chưa đọc được: {error.message}</div>
+        <div className="admin-form-error">Some order data could not be loaded: {error.message}</div>
       ) : null}
       {amountMismatch ? (
         <div className="order-detail-warning">
-          Có giao dịch không khớp số tiền đơn hàng. Không bàn giao thêm file trước khi kiểm tra
-          trong payOS.
+          A payment does not match the order total. Check the payment provider before delivering any file.
         </div>
       ) : null}
 
       <section className="order-detail-overview">
         <article>
-          <span>TRẠNG THÁI</span>
+          <span>STATUS</span>
           <i className={`order-status ${order.status}`}>{statusLabel[order.status]}</i>
-          <small>Cập nhật {formatDateTime(order.updated_at)}</small>
+          <small>Updated {formatDateTime(order.updated_at)} UTC</small>
         </article>
         <article>
-          <span>TỔNG THANH TOÁN</span>
+          <span>ORDER TOTAL</span>
           <strong>{formatOrderAmount(order.total, order.currency)}</strong>
           <small>{order.currency}</small>
         </article>
         <article>
-          <span>LIÊN KẾT ĐÃ CẤP</span>
+          <span>DOWNLOAD LINKS</span>
           <strong>{tokens.length}</strong>
-          <small>{totalDownloads} lượt tải đã sử dụng</small>
+          <small>{totalDownloads} downloads used</small>
         </article>
         <article>
-          <span>TẢI GẦN NHẤT</span>
-          <strong className="overview-date">{lastDownload ? "Đã tải" : "Chưa tải"}</strong>
-          <small>{formatDateTime(lastDownload ?? null)}</small>
+          <span>LATEST DOWNLOAD</span>
+          <strong className="overview-date">{lastDownload ? "Downloaded" : "Not downloaded"}</strong>
+          <small>{formatDateTime(lastDownload ?? null)}{lastDownload ? " UTC" : ""}</small>
         </article>
       </section>
 
@@ -199,48 +199,52 @@ export default async function AdminOrderDetailPage({
         <article className="admin-panel">
           <div className="panel-heading">
             <div>
-              <span>ĐƠN HÀNG</span>
+              <span>ORDER</span>
               <h2>{order.order_code}</h2>
             </div>
           </div>
           <dl className="order-detail-list">
             <div>
-              <dt>Email khách hàng</dt>
+              <dt>Customer email</dt>
               <dd>{order.customer_email}</dd>
             </div>
             <div>
-              <dt>Thời gian tạo</dt>
+              <dt>Created</dt>
               <dd>{formatDateTime(order.created_at)}</dd>
             </div>
             <div>
-              <dt>Thời gian thanh toán</dt>
+              <dt>Paid</dt>
               <dd>{formatDateTime(order.paid_at)}</dd>
             </div>
             <div>
-              <dt>Tạm tính</dt>
+              <dt>Subtotal</dt>
               <dd>{formatOrderAmount(order.subtotal, order.currency)}</dd>
             </div>
             <div>
-              <dt>Mã payOS</dt>
-              <dd>{order.payos_order_code ?? "Chưa có"}</dd>
+              <dt>Payment provider</dt>
+              <dd>{isLemonSqueezyOrder ? "Lemon Squeezy" : "External payment"}</dd>
             </div>
             <div>
-              <dt>Nội dung chuyển khoản</dt>
-              <dd>{transferContent || "Chưa có"}</dd>
+              <dt>Payment reference</dt>
+              <dd>{transferContent || "See payment history"}</dd>
             </div>
             <div>
-              <dt>Payment Link ID</dt>
-              <dd className="break-value">{order.payos_payment_link_id ?? "Chưa có"}</dd>
+              <dt>Receipt</dt>
+              <dd className="break-value">
+                {order.checkout_url ? (
+                  <a href={order.checkout_url} rel="noreferrer" target="_blank">Open receipt ↗</a>
+                ) : "Not available"}
+              </dd>
             </div>
           </dl>
           {order.status === "paid" && !isLemonSqueezyOrder ? (
             <form action={updateOrderEmailAndResend} className="order-email-correction">
               <input name="order_id" type="hidden" value={order.id} />
               <input name="return_to" type="hidden" value={returnTo} />
-              <label htmlFor="correct-order-email">Sửa email khách hàng</label>
+              <label htmlFor="correct-order-email">Correct customer email</label>
               <p>
-                Chỉ thực hiện sau khi đã đối chiếu nội dung chuyển khoản hoặc biên lai. Hệ thống
-                sẽ thu hồi toàn bộ link cũ trước khi gửi link mới.
+                Only continue after verifying the payment receipt. The system revokes every old
+                link before sending a new one.
               </p>
               <div>
                 <input
@@ -251,7 +255,7 @@ export default async function AdminOrderDetailPage({
                   type="email"
                 />
                 <button className="primary-button" disabled={!emailReady} type="submit">
-                  {emailReady ? "Cập nhật & gửi lại" : "Chưa cấu hình email"}
+                  {emailReady ? "Update & resend" : "Email not configured"}
                 </button>
               </div>
             </form>
@@ -261,12 +265,12 @@ export default async function AdminOrderDetailPage({
         <article className="admin-panel">
           <div className="panel-heading">
             <div>
-              <span>SẢN PHẨM</span>
-              <h2>Skill trong đơn</h2>
+              <span>PRODUCTS</span>
+              <h2>Skills in this order</h2>
             </div>
           </div>
           {items.length === 0 ? (
-            <div className="order-detail-empty">Đơn hàng chưa có dữ liệu sản phẩm.</div>
+            <div className="order-detail-empty">No product data is attached to this order.</div>
           ) : (
             <div className="order-detail-records">
               {items.map((item) => (
@@ -274,22 +278,22 @@ export default async function AdminOrderDetailPage({
                   <div>
                     <strong>{item.skill_name}</strong>
                     <span>
-                      Phiên bản {item.version} · {item.quantity} × {formatOrderAmount(item.unit_price, order.currency)}
+                      Version {item.version} · {item.quantity} × {formatOrderAmount(item.unit_price, order.currency)}
                     </span>
                   </div>
                   <dl className="order-detail-list compact">
                     <div>
-                      <dt>Đường dẫn</dt>
+                      <dt>Slug</dt>
                       <dd>{item.skill_slug}</dd>
                     </div>
                     <div>
-                      <dt>File bàn giao</dt>
-                      <dd className="break-value">{item.file_path ?? "Chưa gắn file"}</dd>
+                      <dt>Delivery file</dt>
+                      <dd className="break-value">{item.file_path ?? "Managed by Lemon Squeezy"}</dd>
                     </div>
                   </dl>
                   {item.skill_id ? (
                     <Link className="order-detail-inline-link" href={`/admin/skills/${item.skill_id}`}>
-                      Mở sản phẩm ↗
+                      Open Skill ↗
                     </Link>
                   ) : null}
                 </div>
@@ -301,12 +305,12 @@ export default async function AdminOrderDetailPage({
         <article className="admin-panel">
           <div className="panel-heading">
             <div>
-              <span>THANH TOÁN</span>
-              <h2>Lịch sử thanh toán</h2>
+              <span>PAYMENT</span>
+              <h2>Payment history</h2>
             </div>
           </div>
           {payments.length === 0 ? (
-            <div className="order-detail-empty">Chưa nhận được webhook thanh toán.</div>
+            <div className="order-detail-empty">No payment webhook has been recorded.</div>
           ) : (
             <div className="order-detail-records">
               {payments.map((payment) => {
@@ -322,7 +326,7 @@ export default async function AdminOrderDetailPage({
                     </div>
                     <span>{formatDateTime(payment.created_at)}</span>
                     <small>
-                      {payment.provider.toUpperCase()} · Mã tham chiếu: {payment.provider_reference ?? "—"}
+                      {payment.provider.toUpperCase()} · Reference: {payment.provider_reference ?? "—"}
                     </small>
                   </div>
                 );
@@ -334,16 +338,16 @@ export default async function AdminOrderDetailPage({
         <article className="admin-panel">
           <div className="panel-heading">
             <div>
-              <span>BÀN GIAO</span>
-              <h2>Liên kết tải bảo mật</h2>
+              <span>DELIVERY</span>
+              <h2>Secure download links</h2>
             </div>
           </div>
           <p className="order-detail-note">
-            Mỗi lần gửi lại email sẽ tạo một liên kết mới. Danh sách này xác nhận link đã được
-            tạo; trạng thái giao email chi tiết được kiểm tra trong Resend Logs.
+            Skillroom download links appear here when delivery is handled by this website.
+            Lemon Squeezy-hosted downloads remain available in the Lemon Squeezy order record.
           </p>
           {tokens.length === 0 ? (
-            <div className="order-detail-empty">Chưa có liên kết tải nào được tạo.</div>
+            <div className="order-detail-empty">No Skillroom download link has been created.</div>
           ) : (
             <div className="order-detail-records token-records">
               {tokens.map((token, index) => {
@@ -352,25 +356,25 @@ export default async function AdminOrderDetailPage({
                   <div className="order-detail-record token-record" key={token.id}>
                     <div>
                       <span className={`token-status ${state.className}`}>{state.label}</span>
-                      <strong>Liên kết #{tokens.length - index}</strong>
+                      <strong>Link #{tokens.length - index}</strong>
                     </div>
                     <dl className="order-detail-list compact">
                       <div>
-                        <dt>Ngày tạo</dt>
+                        <dt>Created</dt>
                         <dd>{formatDateTime(token.created_at)}</dd>
                       </div>
                       <div>
-                        <dt>Hết hạn</dt>
+                        <dt>Expires</dt>
                         <dd>{formatDateTime(token.expires_at)}</dd>
                       </div>
                       <div>
-                        <dt>Lượt tải</dt>
+                        <dt>Downloads</dt>
                         <dd>
-                          {token.download_count}/{DOWNLOAD_LIMIT} · còn {Math.max(0, DOWNLOAD_LIMIT - token.download_count)}
+                          {token.download_count}/{DOWNLOAD_LIMIT} · {Math.max(0, DOWNLOAD_LIMIT - token.download_count)} remaining
                         </dd>
                       </div>
                       <div>
-                        <dt>Lần tải cuối</dt>
+                        <dt>Last download</dt>
                         <dd>{formatDateTime(token.used_at)}</dd>
                       </div>
                     </dl>
