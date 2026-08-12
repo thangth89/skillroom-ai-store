@@ -1,6 +1,5 @@
 import { AdminShell } from "@/components/admin-shell";
 import { hasEmailDeliveryConfig } from "@/lib/delivery";
-import { hasPayOSConfig } from "@/lib/payos";
 import { hasAdminDataConfig, requireAdmin } from "@/lib/supabase/admin";
 import { headers } from "next/headers";
 
@@ -9,17 +8,20 @@ export const dynamic = "force-dynamic";
 function getProjectHost() {
   const projectUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
-  if (!projectUrl) return "Chưa xác định";
+  if (!projectUrl) return "Not available";
 
   try {
     return new URL(projectUrl).hostname;
   } catch {
-    return "Đã khai báo";
+    return "Configured";
   }
 }
 
 async function getSiteUrl() {
-  const configuredUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
+  const configuredUrl = (
+    process.env.NEXT_PUBLIC_INTERNATIONAL_SITE_URL ??
+    process.env.NEXT_PUBLIC_SITE_URL
+  )?.replace(/\/$/, "");
 
   if (configuredUrl) return configuredUrl;
 
@@ -27,57 +29,56 @@ async function getSiteUrl() {
   const host = requestHeaders.get("x-forwarded-host") ?? requestHeaders.get("host");
   const protocol = requestHeaders.get("x-forwarded-proto") ?? "https";
 
-  return host ? `${protocol}://${host}` : "Chưa xác định tên miền";
+  return host ? `${protocol}://${host}` : "Site URL not available";
 }
 
 export default async function AdminSettingsPage() {
   await requireAdmin();
 
-  const payOSReady = hasPayOSConfig();
+  const lemonReady = Boolean(process.env.LEMONSQUEEZY_WEBHOOK_SECRET);
   const emailReady = hasEmailDeliveryConfig();
   const supabaseReady = hasAdminDataConfig();
   const siteUrl = await getSiteUrl();
-  const sender = process.env.EMAIL_FROM ?? "Chưa khai báo EMAIL_FROM";
-  const bucket = process.env.SKILL_STORAGE_BUCKET ?? "Chưa khai báo bucket";
+  const sender = process.env.EMAIL_FROM ?? "EMAIL_FROM is not configured";
+  const bucket = process.env.SKILL_STORAGE_BUCKET ?? "Bucket is not configured";
 
   return (
-    <AdminShell eyebrow="HỆ THỐNG" title="Cài đặt">
+    <AdminShell eyebrow="SYSTEM" title="Settings">
       <section className="admin-panel">
         <div className="panel-heading">
           <div>
-            <span>QUẢN LÝ AN TOÀN</span>
-            <h2>Trạng thái cấu hình máy chủ</h2>
+            <span>SECURE CONFIGURATION</span>
+            <h2>Server configuration status</h2>
           </div>
         </div>
         <p className="settings-security-note">
-          Trang này chỉ kiểm tra hệ thống đã được cấu hình hay chưa. API Key và khóa bí mật
-          vẫn được quản lý trong Environment Variables của Vercel và không bao giờ hiển thị
-          tại đây.
+          This page only checks whether each service is configured. API keys and secrets
+          remain protected in Vercel Environment Variables and are never displayed here.
         </p>
       </section>
 
       <section className="settings-grid">
         <article className="admin-panel">
-          <span className="section-index">THANH TOÁN</span>
-          <h2>payOS / VietQR</h2>
-          <span className={`status ${payOSReady ? "ready" : "pending"}`}>
-            {payOSReady ? "Đã kết nối" : "Thiếu cấu hình"}
+          <span className="section-index">GLOBAL PAYMENTS</span>
+          <h2>Lemon Squeezy</h2>
+          <span className={`status ${lemonReady ? "ready" : "pending"}`}>
+            {lemonReady ? "Connected" : "Configuration required"}
           </span>
           <p>
-            {payOSReady
-              ? "Đã đủ Client ID, API Key và Checksum Key để tạo QR và xác minh giao dịch."
-              : "Cần kiểm tra lại ba biến môi trường payOS trên Vercel."}
+            {lemonReady
+              ? "The webhook signing secret is available for international payment events."
+              : "Add LEMONSQUEEZY_WEBHOOK_SECRET to the Vercel Preview environment."}
           </p>
           <small className="settings-value">
-            Webhook: {siteUrl}/api/payments/payos/webhook
+            Webhook: {siteUrl}/api/payments/lemonsqueezy/webhook
           </small>
           <a
             className="secondary-button"
-            href="https://my.payos.vn"
+            href="https://app.lemonsqueezy.com/settings/webhooks"
             rel="noreferrer"
             target="_blank"
           >
-            Mở payOS ↗
+            Open Lemon Squeezy ↗
           </a>
         </article>
 
@@ -85,37 +86,37 @@ export default async function AdminSettingsPage() {
           <span className="section-index">EMAIL</span>
           <h2>Resend</h2>
           <span className={`status ${emailReady ? "ready" : "pending"}`}>
-            {emailReady ? "Đã kết nối" : "Thiếu cấu hình"}
+            {emailReady ? "Connected" : "Configuration required"}
           </span>
           <p>
             {emailReady
-              ? "Website đã sẵn sàng gửi email bàn giao và liên kết tải Skill."
-              : "Cần kiểm tra RESEND_API_KEY và EMAIL_FROM trên Vercel."}
+              ? "The website can deliver free Skills and support emails."
+              : "Check RESEND_API_KEY and EMAIL_FROM on Vercel."}
           </p>
-          <small className="settings-value">Người gửi: {sender}</small>
+          <small className="settings-value">Sender: {sender}</small>
           <a
             className="secondary-button"
             href="https://resend.com/domains"
             rel="noreferrer"
             target="_blank"
           >
-            Mở Resend ↗
+            Open Resend ↗
           </a>
         </article>
 
         <article className="admin-panel">
-          <span className="section-index">DỮ LIỆU &amp; FILE</span>
+          <span className="section-index">DATA &amp; FILES</span>
           <h2>Supabase</h2>
           <span className={`status ${supabaseReady ? "ready" : "pending"}`}>
-            {supabaseReady ? "Đã kết nối" : "Thiếu cấu hình"}
+            {supabaseReady ? "Connected" : "Configuration required"}
           </span>
           <p>
             {supabaseReady
-              ? "Database và kho file riêng tư đã sẵn sàng cho đơn hàng thật."
-              : "Cần kiểm tra URL, Secret Key và tên bucket trên Vercel."}
+              ? "The shared database and private Skill storage are ready."
+              : "Check the Supabase URL, Secret Key and storage bucket on Vercel."}
           </p>
           <small className="settings-value">
-            Dự án: {getProjectHost()} · Bucket: {bucket}
+            Project: {getProjectHost()} · Bucket: {bucket}
           </small>
           <a
             className="secondary-button"
@@ -123,7 +124,7 @@ export default async function AdminSettingsPage() {
             rel="noreferrer"
             target="_blank"
           >
-            Mở Supabase ↗
+            Open Supabase ↗
           </a>
         </article>
       </section>
