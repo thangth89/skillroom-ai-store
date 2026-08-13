@@ -381,9 +381,12 @@ h1, h2, h3, p { text-wrap: pretty; }
 .checkout-form { margin-top: 28px; }
 .checkout-form > label:first-child { margin-bottom: 9px; font-size: 13px; font-weight: 750; }
 .checkout-form input[type="email"] { height: 54px; border-color: #bdc9c0; border-radius: 11px; background: #fff; font-size: 14px; }
-.field-help, .secure-note { color: var(--muted); font-size: 11px; }
-.check-row { margin: 20px 0; font-size: 12px; }
-.check-row.optional-consent { margin-top: -8px; }
+.field-help, .secure-note { color: var(--muted); font-size: 11px; line-height: 1.55; }
+.field-help { min-height: 18px; margin: 9px 0 0; }
+.check-row { margin: 20px 0; font-size: 12px; line-height: 1.55; }
+.check-row.optional-consent { clear: both; align-items: flex-start; margin: 18px 0 20px; }
+.check-row.optional-consent input { flex: 0 0 17px; margin-top: 1px; }
+.check-row.optional-consent span { display: block; min-width: 0; }
 .form-success { margin: 14px 0; border: 1px solid #aed0b8; border-radius: 10px; background: #e8f5eb; padding: 12px 14px; color: #21633d; font-size: 12px; line-height: 1.55; }
 .payment-method-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 7px; margin-top: 16px; }
 .payment-method-list span { display: inline-flex; min-height: 28px; align-items: center; border: 1px solid #cbd5cd; border-radius: 7px; background: #fff; padding: 0 9px; color: #39483e; font-size: 9px; font-weight: 800; letter-spacing: .02em; }
