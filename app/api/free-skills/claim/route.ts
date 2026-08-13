@@ -1,4 +1,4 @@
-import { sendOrderDeliveryEmail } from "@/lib/delivery";
+import { hasEmailDeliveryConfig, sendOrderDeliveryEmail } from "@/lib/delivery";
 import { createAdminClient, hasAdminDataConfig } from "@/lib/supabase/admin";
 
 type FreeSkill = {
@@ -26,6 +26,12 @@ function missingInternationalSchema(error: { code?: string; message?: string } |
 export async function POST(request: Request) {
   if (!hasAdminDataConfig()) {
     return Response.json({ error: "Free Skill delivery is not configured yet." }, { status: 503 });
+  }
+  if (!hasEmailDeliveryConfig()) {
+    return Response.json(
+      { error: "Email delivery is not configured for this website environment yet." },
+      { status: 503 },
+    );
   }
 
   let body: { email?: unknown; slug?: unknown; marketingConsent?: unknown };
