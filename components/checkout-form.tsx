@@ -24,7 +24,7 @@ export function CheckoutForm({
       setError("Enter a valid email address for delivery.");
       return;
     }
-    if (!agreed) {
+    if (!isFree && !agreed) {
       setError("Please agree to the digital product terms.");
       return;
     }
@@ -54,11 +54,22 @@ export function CheckoutForm({
       const response = await fetch("/api/free-skills/claim", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        cache: "no-store",
+        credentials: "same-origin",
         body: JSON.stringify({ email, slug, marketingConsent }),
       });
-      const data = (await response.json()) as { success?: boolean; error?: string };
+      const responseText = await response.text();
+      let data: { success?: boolean; error?: string } = {};
+      try {
+        data = JSON.parse(responseText) as typeof data;
+      } catch {
+        data = {};
+      }
       if (!response.ok || !data.success) {
-        setError(data.error || "We could not send the Skill. Please try again.");
+        setError(
+          data.error ||
+            `We could not send the Skill (error ${response.status}). Please try again.`,
+        );
         return;
       }
       setSuccess("Check your inbox. Your private Skill download link is on its way.");
@@ -70,6 +81,25 @@ export function CheckoutForm({
     } finally {
       setPending(false);
     }
+  }
+
+  if (isFree && success) {
+    return (
+      <section className="free-claim-success" aria-live="polite" role="status">
+        <span className="free-claim-success-mark" aria-hidden="true">✓</span>
+        <div>
+          <strong>Email sent successfully</strong>
+          <p>{success} Check your Spam or Promotions folder if it does not arrive within a few minutes.</p>
+        </div>
+        <button
+          className="secondary-button"
+          onClick={() => setSuccess("")}
+          type="button"
+        >
+          Use another email
+        </button>
+      </section>
+    );
   }
 
   return (
@@ -85,17 +115,19 @@ export function CheckoutForm({
         autoComplete="email"
       />
       <p className="field-help">We will send a time-limited private download link to this address.</p>
-      <label className="check-row">
-        <input type="checkbox" checked={agreed} onChange={(event) => { setAgreed(event.target.checked); setError(""); }} />
-        <span>I have checked my email and agree to the digital product terms.</span>
-      </label>
+      {!isFree ? (
+        <label className="check-row">
+          <input type="checkbox" checked={agreed} onChange={(event) => { setAgreed(event.target.checked); setError(""); }} />
+          <span>I have checked my email and agree to the digital product terms.</span>
+        </label>
+      ) : null}
       {isFree ? (
         <label className="check-row optional-consent">
           <input type="checkbox" checked={marketingConsent} onChange={(event) => setMarketingConsent(event.target.checked)} />
           <span>Optional: send me new Skill releases and occasional offers.</span>
         </label>
       ) : null}
-      {error && <p className="form-error" role="alert">{error}</p>}
+      {error ? <p className="form-error" aria-live="assertive" role="alert">{error}</p> : null}
       {success ? <p className="form-success" role="status">{success}</p> : null}
       <button className="primary-button full-button" disabled={pending} type="submit">
         {pending ? "Sending…" : isFree ? "Email me the free Skill" : "Continue to secure checkout"} <span>→</span>
