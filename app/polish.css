@@ -671,8 +671,10 @@ h1, h2, h3, p { text-wrap: pretty; }
 .checkout-unavailable p { margin: 5px 0 0; font-size: 11px; line-height: 1.6; }
 .admin-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .settings-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.order-table-row { min-width: 940px; grid-template-columns: 1.45fr .65fr 1.45fr .75fr 1fr; }
+.order-table-row { min-width: 1000px; grid-template-columns: 1.55fr .65fr 1.35fr .7fr 1.1fr; }
 .order-table-row > span:nth-child(2) { align-items: flex-start; flex-direction: column; gap: 5px; }
+.order-transfer-content { color: #747a72 !important; }
+.order-transfer-content strong { color: #304537; font-family: var(--font-geist-mono), monospace; font-size: 9px; letter-spacing: .04em; }
 .market-status { display: inline-flex; width: max-content; background: #e5ece6 !important; color: #46564a !important; font-style: normal; }
 .market-status.vietnam { background: #dff0d5 !important; color: #3c692c !important; }
 .market-status.international { background: #dce8f5 !important; color: #345e87 !important; }
