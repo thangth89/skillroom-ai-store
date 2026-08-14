@@ -1,13 +1,20 @@
 import { revokeOrderDownloadLinks, sendOrderDeliveryEmail } from "@/lib/delivery";
-import { hasPayPalConfig, verifyPayPalWebhook } from "@/lib/paypal";
+import { getPayPalCapture, hasPayPalConfig, verifyPayPalWebhook } from "@/lib/paypal";
 import { createAdminClient, hasAdminDataConfig } from "@/lib/supabase/admin";
 
 type PayPalWebhook = {
   event_type?: string;
   resource?: {
+    id?: string;
     status?: string;
     amount?: { currency_code?: string; value?: string };
-    supplementary_data?: { related_ids?: { order_id?: string } };
+    invoice_id?: string;
+    custom_id?: string;
+    seller_payable_breakdown?: {
+      total_refunded_amount?: { currency_code?: string; value?: string };
+    };
+    supplementary_data?: { related_ids?: { order_id?: string; capture_id?: string } };
+    links?: Array<{ href?: string; rel?: string }>;
   };
 };
 
@@ -20,6 +27,34 @@ function requiredHeader(request: Request, name: string) {
 
 function amountCents(value: string | undefined) {
   return value && /^\d+(?:\.\d{1,2})?$/.test(value) ? Math.round(Number(value) * 100) : -1;
+}
+
+function captureIdFromRefund(event: PayPalWebhook) {
+  const relatedCaptureId = event.resource?.supplementary_data?.related_ids?.capture_id?.trim();
+  if (relatedCaptureId) return relatedCaptureId;
+
+  const upLink = event.resource?.links?.find((link) => link.rel === "up")?.href;
+  if (!upLink) return "";
+  try {
+    const match = new URL(upLink).pathname.match(/\/v2\/payments\/captures\/([^/]+)\/?$/i);
+    return match?.[1] ? decodeURIComponent(match[1]) : "";
+  } catch {
+    return "";
+  }
+}
+
+async function resolvePayPalOrderId(event: PayPalWebhook) {
+  const directOrderId = event.resource?.supplementary_data?.related_ids?.order_id?.trim();
+  if (directOrderId) return directOrderId;
+
+  if (event.event_type !== "PAYMENT.CAPTURE.REFUNDED" && event.event_type !== "PAYMENT.CAPTURE.REVERSED") {
+    return "";
+  }
+
+  const captureId = captureIdFromRefund(event);
+  if (!captureId) return "";
+  const capture = await getPayPalCapture(captureId);
+  return capture.supplementary_data?.related_ids?.order_id?.trim() || "";
 }
 
 export async function POST(request: Request) {
@@ -55,7 +90,13 @@ export async function POST(request: Request) {
     return Response.json({ success: false }, { status: 401 });
   }
 
-  const paypalOrderId = event.resource?.supplementary_data?.related_ids?.order_id;
+  let paypalOrderId = "";
+  try {
+    paypalOrderId = await resolvePayPalOrderId(event);
+  } catch (error) {
+    console.error("Unable to resolve the PayPal order for webhook:", error);
+    return Response.json({ success: false }, { status: 502 });
+  }
   if (!paypalOrderId) return Response.json({ success: true });
 
   const supabase = createAdminClient();
@@ -113,9 +154,15 @@ export async function POST(request: Request) {
 
   if (event.event_type === "PAYMENT.CAPTURE.REFUNDED" || event.event_type === "PAYMENT.CAPTURE.REVERSED") {
     const reversed = event.event_type.endsWith("REVERSED");
+    const cumulativeRefund = event.resource?.seller_payable_breakdown?.total_refunded_amount;
+    const refundedCents = cumulativeRefund?.currency_code === "USD"
+      ? amountCents(cumulativeRefund.value)
+      : event.resource?.amount?.currency_code === "USD"
+        ? amountCents(event.resource.amount.value)
+        : -1;
     const fullRefund = reversed || (
-      event.resource?.amount?.currency_code === "USD" &&
-      amountCents(event.resource.amount.value) >= order.total
+      event.resource?.status === "COMPLETED" &&
+      refundedCents >= order.total
     );
     const paymentStatus = reversed ? "REVERSED" : fullRefund ? "REFUNDED" : "PARTIALLY_REFUNDED";
     const paymentUpdate = await supabase
