@@ -77,7 +77,9 @@ function parseSkill(formData: FormData):
   const shortDescription = getText(formData, "short_description");
   const description = getText(formData, "description");
   const priceText = getText(formData, "price").replace(/[^0-9]/g, "");
-  const price = Number(priceText);
+  const vietnamSaleType = getText(formData, "sale_type_vn");
+  const parsedVndPrice = priceText === "" ? null : Number(priceText);
+  const price = vietnamSaleType === "free" ? 0 : parsedVndPrice;
   const statusValue = getText(formData, "status") as SkillStatus;
   const videoValue = getText(formData, "video_url");
   const accent = getText(formData, "accent") || "#b8ff6a";
@@ -88,8 +90,8 @@ function parseSkill(formData: FormData):
   const descriptionEn = getText(formData, "description_en");
   const categoryEn = getText(formData, "category_en");
   const usdPriceText = getText(formData, "price_usd");
-  const saleType = getText(formData, "sale_type");
-  const isFree = saleType === "free";
+  const internationalSaleType = getText(formData, "sale_type_international");
+  const isFree = internationalSaleType === "free";
   // Giữ tên cột cũ để không cần migration, nhưng dùng nó làm URL checkout
   // chung cho bất kỳ nhà cung cấp quốc tế nào được duyệt sau này.
   const internationalCheckoutValue = getText(formData, "lemon_checkout_url");
@@ -131,8 +133,16 @@ function parseSkill(formData: FormData):
     };
   }
 
-  if (!Number.isSafeInteger(price) || price < 0) {
+  if (vietnamSaleType !== "free" && vietnamSaleType !== "paid") {
+    return { data: null, error: "Choose Free or Paid for the Vietnamese store." };
+  }
+
+  if (price === null || !Number.isSafeInteger(price) || price < 0) {
     return { data: null, error: "The VND price must be a non-negative integer." };
+  }
+
+  if (vietnamSaleType === "paid" && price <= 0) {
+    return { data: null, error: "Enter a VND price greater than 0 for a paid Vietnamese Skill." };
   }
 
   if (!statuses.has(statusValue)) {
@@ -150,7 +160,7 @@ function parseSkill(formData: FormData):
     };
   }
 
-  if (saleType !== "free" && saleType !== "paid") {
+  if (internationalSaleType !== "free" && internationalSaleType !== "paid") {
     return { data: null, error: "Choose Free Skill or Paid Skill for the international store." };
   }
 

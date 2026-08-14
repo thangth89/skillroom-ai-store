@@ -29,7 +29,7 @@ export default async function AdminSkillsPage() {
         <div className="panel-heading">
           <div>
             <span>{skills?.length ?? 0} SHARED SKILL RECORDS</span>
-            <h2>International Skill catalog</h2>
+            <h2>Vietnam &amp; international Skill catalog</h2>
           </div>
           <Link className="primary-button" href="/admin/skills/new">
             + Add Skill
@@ -41,7 +41,7 @@ export default async function AdminSkillsPage() {
         {!error && skills?.length === 0 ? (
           <div className="admin-list-empty">
             <strong>No Skill records are available in Supabase.</strong>
-            <p>Create the first Skill here. Records are shared with the Vietnamese store.</p>
+            <p>Create the first Skill here, then configure each market independently.</p>
           </div>
         ) : null}
 

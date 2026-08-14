@@ -6,7 +6,7 @@ import {
   reorderSkills,
   type SkillOrderActionState,
 } from "@/app/admin/skills/actions";
-import { formatUsdCents } from "@/lib/format";
+import { formatUsdCents, formatVnd } from "@/lib/format";
 import type { SkillRecord, SkillStatus } from "@/lib/supabase/skill-records";
 
 const initialState: SkillOrderActionState = {
@@ -94,7 +94,7 @@ export function AdminSkillSorter({
           <span>Position</span>
           <span>Skill</span>
           <span>Category</span>
-          <span>Sales type / Price</span>
+          <span>Vietnam / International</span>
           <span>Status / Controls</span>
         </div>
 
@@ -104,7 +104,8 @@ export function AdminSkillSorter({
           const disabled = pending || !sortReady;
           const displayName = skill.name_en?.trim() || skill.name;
           const displayCategory = skill.category_en?.trim() || skill.category;
-          const displayPrice = skill.is_free
+          const vietnamIsFree = skill.price === 0;
+          const internationalPrice = skill.is_free
             ? "Free"
             : skill.price_usd_cents == null
               ? "Not set"
@@ -130,11 +131,21 @@ export function AdminSkillSorter({
               </span>
               <span>{displayCategory}</span>
               <span className="skill-sales-cell">
-                <i className={`skill-sales-badge ${skill.is_free ? "free" : "paid"}`}>
-                  {skill.is_free ? "Free" : "Paid"}
-                </i>
-                <strong>{displayPrice}</strong>
-                {!skill.is_free && !skill.lemon_checkout_url ? <small>Checkout URL missing</small> : null}
+                <span className="skill-market-offer">
+                  <small>VN</small>
+                  <i className={`skill-sales-badge ${vietnamIsFree ? "free" : "paid"}`}>
+                    {vietnamIsFree ? "Free" : "Paid"}
+                  </i>
+                  <strong>{vietnamIsFree ? "0 ₫" : formatVnd(skill.price)}</strong>
+                </span>
+                <span className="skill-market-offer">
+                  <small>INTL</small>
+                  <i className={`skill-sales-badge ${skill.is_free ? "free" : "paid"}`}>
+                    {skill.is_free ? "Free" : "Paid"}
+                  </i>
+                  <strong>{internationalPrice}</strong>
+                </span>
+                {!skill.is_free && !skill.lemon_checkout_url ? <em>Checkout URL missing</em> : null}
               </span>
               <span className="skill-sort-status">
                 <i className={`skill-status ${skill.status}`}>{statusLabel[skill.status]}</i>
