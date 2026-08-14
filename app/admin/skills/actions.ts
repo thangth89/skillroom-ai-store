@@ -20,6 +20,12 @@ export type SkillOrderActionState = {
   savedIds: string[] | null;
 };
 
+export type DeleteSkillActionState = {
+  error: string;
+  success: string;
+  deletedId: string | null;
+};
+
 type ParsedSkill = {
   slug: string;
   name: string;
@@ -482,4 +488,71 @@ export async function reorderSkills(
     success: "The new order was saved and applied to the storefront.",
     savedIds: ids,
   };
+}
+
+export async function deleteSkill(formData: FormData): Promise<DeleteSkillActionState> {
+  await requireAdmin();
+
+  if (!hasAdminDataConfig()) {
+    return { error: "Supabase is not configured on Vercel.", success: "", deletedId: null };
+  }
+
+  const id = getText(formData, "id");
+  if (!/^[0-9a-f-]{36}$/i.test(id)) {
+    return { error: "The Skill ID is invalid.", success: "", deletedId: null };
+  }
+
+  const supabase = createAdminClient();
+  const { data: skill, error: skillError } = await supabase
+    .from("skills")
+    .select("id, slug, name, file_path")
+    .eq("id", id)
+    .maybeSingle<{ id: string; slug: string; name: string; file_path: string | null }>();
+
+  if (skillError || !skill) {
+    return { error: "The Skill to delete could not be found.", success: "", deletedId: null };
+  }
+
+  const { count, error: itemError } = await supabase
+    .from("order_items")
+    .select("id", { count: "exact", head: true })
+    .eq("skill_id", id);
+
+  if (itemError) {
+    return {
+      error: `Unable to check the Skill's order history: ${itemError.message}`,
+      success: "",
+      deletedId: null,
+    };
+  }
+
+  const { error: deleteError } = await supabase.from("skills").delete().eq("id", id);
+  if (deleteError) {
+    return {
+      error: `Unable to delete the Skill: ${deleteError.message}`,
+      success: "",
+      deletedId: null,
+    };
+  }
+
+  let success = `Deleted “${skill.name}”.`;
+  if ((count ?? 0) > 0) {
+    success += " Its delivery file was kept so previous customers can still download their purchase.";
+  } else if (skill.file_path) {
+    const { error: storageError } = await supabase.storage
+      .from(getSkillStorageBucket())
+      .remove([skill.file_path]);
+    if (storageError) {
+      success += " The product was deleted, but its unused file could not be removed from Storage.";
+    }
+  }
+
+  revalidatePath("/admin");
+  revalidatePath("/admin/skills");
+  revalidatePath("/");
+  revalidatePath("/skills");
+  revalidatePath(`/skills/${skill.slug}`);
+  revalidatePath(`/checkout/${skill.slug}`);
+
+  return { error: "", success, deletedId: id };
 }

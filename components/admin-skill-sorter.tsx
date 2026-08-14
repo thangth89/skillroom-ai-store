@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useActionState, useEffect, useMemo, useState, useTransition } from "react";
 import {
+  deleteSkill,
   reorderSkills,
   type SkillOrderActionState,
 } from "@/app/admin/skills/actions";
@@ -40,9 +42,15 @@ export function AdminSkillSorter({
   const skillById = useMemo(() => new Map(skills.map((skill) => [skill.id, skill])), [skills]);
   const [orderedIds, setOrderedIds] = useState(initialIds);
   const [draggedId, setDraggedId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteMessage, setDeleteMessage] = useState({ error: "", success: "" });
+  const [deletePending, startDeleteTransition] = useTransition();
   const [state, formAction, pending] = useActionState(reorderSkills, initialState);
+  const router = useRouter();
 
-  const savedIds = state.savedIds ?? initialIds;
+  useEffect(() => setOrderedIds(initialIds), [initialIds]);
+
+  const savedIds = (state.savedIds ?? initialIds).filter((id) => skillById.has(id));
   const hasChanges = orderedIds.join("|") !== savedIds.join("|");
 
   function move(id: string, to: number) {
@@ -60,6 +68,29 @@ export function AdminSkillSorter({
     setDraggedId(null);
   }
 
+  function removeSkill(id: string, name: string) {
+    const confirmed = window.confirm(
+      `Delete “${name}” permanently? The product will disappear from both storefronts. This action cannot be undone.`,
+    );
+    if (!confirmed) return;
+
+    setDeletingId(id);
+    setDeleteMessage({ error: "", success: "" });
+    const formData = new FormData();
+    formData.set("id", id);
+    startDeleteTransition(async () => {
+      const result = await deleteSkill(formData);
+      if (result.error) {
+        setDeleteMessage({ error: result.error, success: "" });
+      } else {
+        setOrderedIds((current) => current.filter((skillId) => skillId !== id));
+        setDeleteMessage({ error: "", success: result.success });
+        router.refresh();
+      }
+      setDeletingId(null);
+    });
+  }
+
   return (
     <form action={formAction} className="skill-sorter">
       <input name="skill_ids" type="hidden" value={JSON.stringify(orderedIds)} />
@@ -71,6 +102,8 @@ export function AdminSkillSorter({
         </div>
       ) : null}
       {state.error ? <div className="skill-sort-message error">{state.error}</div> : null}
+      {deleteMessage.error ? <div className="skill-sort-message error">{deleteMessage.error}</div> : null}
+      {deleteMessage.success ? <div className="skill-sort-message success">{deleteMessage.success}</div> : null}
       {state.success && !hasChanges ? (
         <div className="skill-sort-message success">{state.success}</div>
       ) : null}
@@ -101,7 +134,7 @@ export function AdminSkillSorter({
         {orderedIds.map((id, index) => {
           const skill = skillById.get(id);
           if (!skill) return null;
-          const disabled = pending || !sortReady;
+          const disabled = pending || deletePending || !sortReady;
           const displayName = skill.name_en?.trim() || skill.name;
           const displayCategory = skill.category_en?.trim() || skill.category;
           const vietnamIsFree = skill.price === 0;
@@ -149,32 +182,42 @@ export function AdminSkillSorter({
               </span>
               <span className="skill-sort-status">
                 <i className={`skill-status ${skill.status}`}>{statusLabel[skill.status]}</i>
-                <Link href={`/admin/skills/${skill.id}`}>Edit</Link>
-                <span className="skill-sort-controls">
+                <span className="skill-sort-actions">
+                  <Link href={`/admin/skills/${skill.id}`}>Edit</Link>
                   <button
-                    aria-label={`Move ${displayName} to the top`}
-                    disabled={disabled || index === 0}
-                    onClick={() => move(id, 0)}
+                    className="skill-delete-button"
+                    disabled={deletePending}
+                    onClick={() => removeSkill(id, displayName)}
                     type="button"
                   >
-                    Top
+                    {deletingId === id ? "Deleting…" : "Delete"}
                   </button>
-                  <button
-                    aria-label={`Move ${displayName} up one position`}
-                    disabled={disabled || index === 0}
-                    onClick={() => move(id, index - 1)}
-                    type="button"
-                  >
-                    ↑
-                  </button>
-                  <button
-                    aria-label={`Move ${displayName} down one position`}
-                    disabled={disabled || index === orderedIds.length - 1}
-                    onClick={() => move(id, index + 1)}
-                    type="button"
-                  >
-                    ↓
-                  </button>
+                  <span className="skill-sort-controls">
+                    <button
+                      aria-label={`Move ${displayName} to the top`}
+                      disabled={disabled || index === 0}
+                      onClick={() => move(id, 0)}
+                      type="button"
+                    >
+                      Top
+                    </button>
+                    <button
+                      aria-label={`Move ${displayName} up one position`}
+                      disabled={disabled || index === 0}
+                      onClick={() => move(id, index - 1)}
+                      type="button"
+                    >
+                      ↑
+                    </button>
+                    <button
+                      aria-label={`Move ${displayName} down one position`}
+                      disabled={disabled || index === orderedIds.length - 1}
+                      onClick={() => move(id, index + 1)}
+                      type="button"
+                    >
+                      ↓
+                    </button>
+                  </span>
                 </span>
               </span>
             </div>
