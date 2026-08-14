@@ -18,6 +18,7 @@ export default async function CheckoutPage({ params }: { params: Promise<{ slug:
   const vi = locale === "vi";
   const internationalLive = isInternationalCheckoutLive();
   const providerName = getInternationalPaymentProvider();
+  const paypalClientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID?.trim() || "";
   const price = skill.isFree
     ? (vi ? "Miễn phí" : "Free")
     : vi
@@ -39,15 +40,15 @@ export default async function CheckoutPage({ params }: { params: Promise<{ slug:
               : "Enter an email address you can access. We will send a private download link directly to your inbox."
             : vi
               ? "Nhập đúng email nhận Skill. Hệ thống sẽ tạo mã VietQR riêng cho đơn hàng; không thay đổi nội dung chuyển khoản."
-              : internationalLive && skill.internationalCheckoutUrl
-                ? `Continue to the secure ${providerName} checkout. The payment provider will collect and verify your billing details.`
+              : internationalLive && skill.priceUsdCents !== null && skill.priceUsdCents > 0
+                ? `Enter the email that should receive the Skill, then pay securely with ${providerName} or an eligible card.`
                 : "International payment is temporarily unavailable while we connect a new approved provider. Free Skills remain available."}
         </p>
         <CheckoutForm
-          checkoutUrl={skill.internationalCheckoutUrl}
           internationalLive={internationalLive}
           isFree={skill.isFree}
           locale={locale}
+          paypalClientId={paypalClientId}
           providerName={providerName}
           slug={skill.slug}
         />

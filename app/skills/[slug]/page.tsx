@@ -22,7 +22,7 @@ export default async function SkillDetailPage({ params }: { params: Promise<{ sl
     : vi
       ? formatVnd(skill.priceVnd)
       : skill.priceUsdCents === null ? "Coming soon" : formatUsdCents(skill.priceUsdCents);
-  const checkoutAvailable = vi || skill.isFree || (internationalLive && Boolean(skill.internationalCheckoutUrl));
+  const checkoutAvailable = vi || skill.isFree || (internationalLive && skill.priceUsdCents !== null && skill.priceUsdCents > 0);
 
   return (
     <><SiteHeader /><main>

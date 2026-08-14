@@ -51,8 +51,8 @@ export default async function AdminSettingsPage() {
         <article className="admin-panel">
           <span className="section-index">THANH TOÁN QUỐC TẾ</span><h2>{provider}</h2>
           <span className={`status ${internationalReady ? "ready" : "pending"}`}>{internationalReady ? "Đang hoạt động" : "Tạm tắt an toàn"}</span>
-          <p>{internationalReady ? "Checkout quốc tế đang được cho phép trên website." : "Lemon không được duyệt nên thanh toán quốc tế đang tắt. Khi có nhà cung cấp mới, thêm URL sản phẩm rồi bật INTERNATIONAL_CHECKOUT_ENABLED."}</p>
-          <small className="settings-value">Provider: {process.env.INTERNATIONAL_PAYMENT_PROVIDER || "Chưa chọn"}</small>
+          <p>{internationalReady ? `PayPal ${process.env.PAYPAL_ENVIRONMENT === "live" ? "Live" : "Sandbox"} đã kết nối. Giá USD của từng Skill được dùng trực tiếp khi tạo đơn.` : "Kiểm tra NEXT_PUBLIC_PAYPAL_CLIENT_ID và PAYPAL_CLIENT_SECRET trên Vercel."}</p>
+          <small className="settings-value">Webhook: {siteUrl}/api/payments/paypal/webhook · {process.env.PAYPAL_WEBHOOK_ID ? "Đã có Webhook ID" : "Chưa có PAYPAL_WEBHOOK_ID"}</small>
         </article>
 
         <article className="admin-panel">

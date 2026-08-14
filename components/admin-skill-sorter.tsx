@@ -178,7 +178,6 @@ export function AdminSkillSorter({
                   </i>
                   <strong>{internationalPrice}</strong>
                 </span>
-                {!skill.is_free && !skill.lemon_checkout_url ? <em>Checkout URL missing</em> : null}
               </span>
               <span className="skill-sort-status">
                 <i className={`skill-status ${skill.status}`}>{statusLabel[skill.status]}</i>
