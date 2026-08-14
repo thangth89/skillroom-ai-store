@@ -19,6 +19,15 @@ export type PayPalOrderResponse = {
   }>;
 };
 
+export type PayPalCaptureResponse = {
+  id: string;
+  status?: string;
+  amount?: { currency_code?: string; value?: string };
+  invoice_id?: string;
+  custom_id?: string;
+  supplementary_data?: { related_ids?: { order_id?: string } };
+};
+
 function environment(): PayPalEnvironment {
   return process.env.PAYPAL_ENVIRONMENT?.toLowerCase() === "live" ? "live" : "sandbox";
 }
@@ -146,6 +155,13 @@ export async function capturePayPalOrder(paypalOrderId: string, requestId: strin
 export async function getPayPalOrder(paypalOrderId: string) {
   return paypalRequest<PayPalOrderResponse>(
     `/v2/checkout/orders/${encodeURIComponent(paypalOrderId)}`,
+    { method: "GET" },
+  );
+}
+
+export async function getPayPalCapture(paypalCaptureId: string) {
+  return paypalRequest<PayPalCaptureResponse>(
+    `/v2/payments/captures/${encodeURIComponent(paypalCaptureId)}`,
     { method: "GET" },
   );
 }
