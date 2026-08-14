@@ -1,5 +1,5 @@
 import { hasEmailDeliveryConfig, sendOrderDeliveryEmail } from "@/lib/delivery";
-import { capturePayPalOrder, hasPayPalConfig, type PayPalOrderResponse } from "@/lib/paypal";
+import { capturePayPalOrder, getPayPalOrder, hasPayPalConfig, type PayPalOrderResponse } from "@/lib/paypal";
 import { createAdminClient, hasAdminDataConfig } from "@/lib/supabase/admin";
 
 type PaymentRow = { id: string; order_id: string; amount: number; status: string };
@@ -17,9 +17,16 @@ function verifiedCapture(payload: PayPalOrderResponse, order: OrderRow) {
   const cents = amount?.value && /^\d+(?:\.\d{1,2})?$/.test(amount.value)
     ? Math.round(Number(amount.value) * 100)
     : -1;
+  // PayPal's capture response can omit custom_id and invoice_id even though they
+  // were accepted when the order was created. The PayPal order ID is already
+  // bound to this local order in the server-only payments table, so only reject
+  // these fields when PayPal actually returns a conflicting value.
+  const customIdMatches = !purchaseUnit?.custom_id || purchaseUnit.custom_id === order.id;
+  const invoiceIdMatches = !purchaseUnit?.invoice_id || purchaseUnit.invoice_id === order.order_code;
   return payload.status === "COMPLETED" &&
-    purchaseUnit?.custom_id === order.id &&
-    purchaseUnit?.invoice_id === order.order_code &&
+    Boolean(capture) &&
+    customIdMatches &&
+    invoiceIdMatches &&
     amount?.currency_code === "USD" &&
     cents === order.total;
 }
@@ -63,8 +70,15 @@ export async function POST(request: Request, { params }: { params: Promise<{ pay
     try {
       capture = await capturePayPalOrder(paypalOrderId, `capture-${order.id}`);
     } catch (error) {
-      console.error("Unable to capture PayPal order:", error);
-      return Response.json({ error: "PayPal could not complete the payment. No delivery was made." }, { status: 502 });
+      // A browser retry can reach this route after PayPal has already captured
+      // the payment. Read the authoritative order state instead of charging again.
+      console.error("PayPal capture call did not complete normally; checking order state:", error);
+      try {
+        capture = await getPayPalOrder(paypalOrderId);
+      } catch (lookupError) {
+        console.error("Unable to read PayPal order after capture error:", lookupError);
+        return Response.json({ error: "PayPal could not complete the payment. No delivery was made." }, { status: 502 });
+      }
     }
 
     if (!verifiedCapture(capture, order)) {

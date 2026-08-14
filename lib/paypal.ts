@@ -143,6 +143,13 @@ export async function capturePayPalOrder(paypalOrderId: string, requestId: strin
   );
 }
 
+export async function getPayPalOrder(paypalOrderId: string) {
+  return paypalRequest<PayPalOrderResponse>(
+    `/v2/checkout/orders/${encodeURIComponent(paypalOrderId)}`,
+    { method: "GET" },
+  );
+}
+
 export async function verifyPayPalWebhook(input: {
   authAlgo: string;
   certUrl: string;
