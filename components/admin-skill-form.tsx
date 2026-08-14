@@ -37,14 +37,10 @@ export function AdminSkillForm({ skill }: { skill?: SkillRecord }) {
 
       <section className="admin-form-section">
         <div className="admin-form-heading">
-          <span>SHARED SOURCE DATA</span>
-          <p>Core record shared with the Vietnamese store. These fields remain required by the shared database.</p>
+          <span>SHARED SETTINGS</span>
+          <p>Technical settings shared by both the Vietnamese and international storefronts.</p>
         </div>
         <div className="admin-form-grid">
-          <label className="wide-field">
-            <span>Source Skill name *</span>
-            <input defaultValue={skill?.name} maxLength={120} name="name" required />
-          </label>
           <label>
             <span>Slug *</span>
             <input
@@ -55,10 +51,6 @@ export function AdminSkillForm({ skill }: { skill?: SkillRecord }) {
               required
             />
             <small>Use lowercase letters, numbers and hyphens only.</small>
-          </label>
-          <label>
-            <span>Source category *</span>
-            <input defaultValue={skill?.category} name="category" placeholder="Aquascape" required />
           </label>
           <label>
             <span>Version *</span>
@@ -72,17 +64,13 @@ export function AdminSkillForm({ skill }: { skill?: SkillRecord }) {
               <option value="archived">Archived</option>
             </select>
           </label>
-          <label className="checkbox-field">
-            <input defaultChecked={skill?.featured} name="featured" type="checkbox" />
-            <span>Feature this Skill</span>
-          </label>
         </div>
       </section>
 
       <section className="admin-form-section vietnam-fields">
         <div className="admin-form-heading">
           <span>VIETNAMESE STOREFRONT</span>
-          <p>Set the Vietnamese sales type and VND price independently from the international store.</p>
+          <p>Configure the Vietnamese offer, VND price and all Vietnamese storefront content in one place.</p>
         </div>
         <div className="admin-form-grid">
           <fieldset className="sale-type-field wide-field">
@@ -116,6 +104,14 @@ export function AdminSkillForm({ skill }: { skill?: SkillRecord }) {
               </label>
             </div>
           </fieldset>
+          <label className="wide-field">
+            <span>Vietnamese Skill name *</span>
+            <input defaultValue={skill?.name} maxLength={120} name="name" required />
+          </label>
+          <label>
+            <span>Vietnamese category *</span>
+            <input defaultValue={skill?.category} name="category" placeholder="Aquascape" required />
+          </label>
           {vietnamSaleType === "free" ? (
             <div className="sale-type-summary wide-field free">
               <strong>Free delivery is active in Vietnam</strong>
@@ -137,6 +133,30 @@ export function AdminSkillForm({ skill }: { skill?: SkillRecord }) {
               <small>This price is independent from the international USD price.</small>
             </label>
           )}
+          <label className="wide-field">
+            <span>Vietnamese eyebrow</span>
+            <input defaultValue={skill?.eyebrow} name="eyebrow" />
+          </label>
+          <label className="wide-field">
+            <span>Vietnamese card description *</span>
+            <textarea defaultValue={skill?.short_description} name="short_description" required rows={3} />
+          </label>
+          <label className="wide-field">
+            <span>Vietnamese full description *</span>
+            <textarea defaultValue={skill?.description} name="description" required rows={6} />
+          </label>
+          <label>
+            <span>Vietnamese outcomes</span>
+            <textarea defaultValue={lines(skill?.outcomes)} name="outcomes" rows={7} />
+          </label>
+          <label>
+            <span>Vietnamese deliverables</span>
+            <textarea defaultValue={lines(skill?.deliverables)} name="deliverables" rows={7} />
+          </label>
+          <label>
+            <span>Vietnamese requirements</span>
+            <textarea defaultValue={lines(skill?.requirements)} name="requirements" rows={7} />
+          </label>
         </div>
       </section>
 
@@ -172,7 +192,7 @@ export function AdminSkillForm({ skill }: { skill?: SkillRecord }) {
                 />
                 <span>
                   <strong>Paid Skill</strong>
-                  <small>The Vietnamese store uses payOS. The international store uses the approved provider configured on Vercel.</small>
+                  <small>The international store uses the approved payment provider configured on Vercel.</small>
                 </span>
               </label>
             </div>
@@ -245,27 +265,6 @@ export function AdminSkillForm({ skill }: { skill?: SkillRecord }) {
 
       <section className="admin-form-section">
         <div className="admin-form-heading">
-          <span>VIETNAMESE SOURCE COPY</span>
-          <p>Shared source content used by the Vietnamese storefront.</p>
-        </div>
-        <div className="admin-form-grid">
-          <label className="wide-field">
-            <span>Source eyebrow</span>
-            <input defaultValue={skill?.eyebrow} name="eyebrow" />
-          </label>
-          <label className="wide-field">
-            <span>Source card description *</span>
-            <textarea defaultValue={skill?.short_description} name="short_description" required rows={3} />
-          </label>
-          <label className="wide-field">
-            <span>Source full description *</span>
-            <textarea defaultValue={skill?.description} name="description" required rows={6} />
-          </label>
-        </div>
-      </section>
-
-      <section className="admin-form-section">
-        <div className="admin-form-heading">
           <span>VIDEO &amp; DELIVERY FILE</span>
           <p>Supports direct MP4, YouTube, Facebook and Instagram URLs.</p>
         </div>
@@ -281,27 +280,6 @@ export function AdminSkillForm({ skill }: { skill?: SkillRecord }) {
             <small>
               Maximum 4 MB. {skill?.file_path ? `Current file: ${skill.file_path}` : "May be left blank while saving a draft."}
             </small>
-          </label>
-        </div>
-      </section>
-
-      <section className="admin-form-section">
-        <div className="admin-form-heading">
-          <span>VIETNAMESE SOURCE DETAILS</span>
-          <p>One item per line. International equivalents are managed above.</p>
-        </div>
-        <div className="admin-form-grid three-columns">
-          <label>
-            <span>Source outcomes</span>
-            <textarea defaultValue={lines(skill?.outcomes)} name="outcomes" rows={7} />
-          </label>
-          <label>
-            <span>Source deliverables</span>
-            <textarea defaultValue={lines(skill?.deliverables)} name="deliverables" rows={7} />
-          </label>
-          <label>
-            <span>Source requirements</span>
-            <textarea defaultValue={lines(skill?.requirements)} name="requirements" rows={7} />
           </label>
         </div>
       </section>
