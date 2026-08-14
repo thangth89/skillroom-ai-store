@@ -98,24 +98,8 @@ function parseSkill(formData: FormData):
   const usdPriceText = getText(formData, "price_usd");
   const internationalSaleType = getText(formData, "sale_type_international");
   const isFree = internationalSaleType === "free";
-  // Giữ tên cột cũ để không cần migration, nhưng dùng nó làm URL checkout
-  // chung cho bất kỳ nhà cung cấp quốc tế nào được duyệt sau này.
-  const internationalCheckoutValue = getText(formData, "lemon_checkout_url");
   const usdPrice = usdPriceText === "" ? null : Number(usdPriceText);
   const priceUsdCents = isFree ? 0 : usdPrice === null ? null : Math.round(usdPrice * 100);
-
-  let internationalCheckoutUrl: string | null = null;
-  if (internationalCheckoutValue && !isFree) {
-    try {
-      const parsedUrl = new URL(internationalCheckoutValue);
-      if (parsedUrl.protocol !== "https:") {
-        throw new Error("invalid checkout URL");
-      }
-      internationalCheckoutUrl = parsedUrl.toString();
-    } catch {
-      return { data: null, error: "The international Checkout URL must be a valid HTTPS address." };
-    }
-  }
 
   if (usdPriceText && (!Number.isFinite(usdPrice) || usdPrice! < 0 || usdPrice! > 1000000)) {
     return { data: null, error: "The USD price must be between 0 and 1,000,000." };
@@ -217,7 +201,8 @@ function parseSkill(formData: FormData):
       category_en: categoryEn,
       price_usd_cents: priceUsdCents,
       is_free: isFree,
-      lemon_checkout_url: internationalCheckoutUrl,
+      // Legacy database column retained for backwards compatibility; PayPal creates orders dynamically.
+      lemon_checkout_url: null,
       deliverables_en: getList(formData, "deliverables_en"),
       outcomes_en: getList(formData, "outcomes_en"),
       requirements_en: getList(formData, "requirements_en"),

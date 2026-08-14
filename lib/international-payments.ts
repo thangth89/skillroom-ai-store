@@ -1,9 +1,11 @@
 import "server-only";
 
+import { hasPayPalConfig } from "@/lib/paypal";
+
 export function isInternationalCheckoutLive() {
-  return process.env.INTERNATIONAL_CHECKOUT_ENABLED === "true";
+  return hasPayPalConfig();
 }
 
 export function getInternationalPaymentProvider() {
-  return process.env.INTERNATIONAL_PAYMENT_PROVIDER?.trim() || "International checkout";
+  return hasPayPalConfig() ? "PayPal" : "International checkout";
 }

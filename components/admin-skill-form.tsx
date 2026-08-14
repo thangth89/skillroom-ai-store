@@ -211,30 +211,18 @@ export function AdminSkillForm({ skill }: { skill?: SkillRecord }) {
               <span>The uploaded Skill file will be sent by email. The storefront price will display as Free.</span>
             </div>
           ) : (
-            <>
-              <label>
-                <span>International price (USD) *</span>
-                <input
-                  defaultValue={skill?.price_usd_cents == null ? "" : skill.price_usd_cents / 100}
-                  min="0.01"
-                  name="price_usd"
-                  placeholder="9.00"
-                  step="0.01"
-                  type="number"
-                />
-                <small>This is an independent international price, not an automatic VND conversion.</small>
-              </label>
-              <label className="wide-field">
-                <span>International Checkout URL</span>
-                <input
-                  defaultValue={skill?.lemon_checkout_url ?? ""}
-                  name="lemon_checkout_url"
-                  placeholder="https://checkout.your-provider.com/..."
-                  type="url"
-                />
-                <small>Optional until a new provider is approved. Checkout stays disabled unless INTERNATIONAL_CHECKOUT_ENABLED=true.</small>
-              </label>
-            </>
+            <label>
+              <span>International price (USD) *</span>
+              <input
+                defaultValue={skill?.price_usd_cents == null ? "" : skill.price_usd_cents / 100}
+                min="0.01"
+                name="price_usd"
+                placeholder="9.00"
+                step="0.01"
+                type="number"
+              />
+              <small>PayPal uses this price automatically. No separate product or checkout URL is required.</small>
+            </label>
           )}
           <label className="wide-field">
             <span>English eyebrow</span>

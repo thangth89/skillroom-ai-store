@@ -51,7 +51,7 @@ export default async function AdminPage() {
         <div className="panel-heading"><div><span>TRẠNG THÁI HỆ THỐNG</span><h2>Kết nối đang sử dụng</h2></div></div>
         <div className="integration-list">
           <div><span className={`status ${payosReady ? "ready" : "pending"}`}>{payosReady ? "Đã kết nối" : "Cần cấu hình"}</span><strong>payOS / VietQR</strong><small>Thanh toán khách hàng Việt Nam</small></div>
-          <div><span className={`status ${internationalReady ? "ready" : "pending"}`}>{internationalReady ? "Đang hoạt động" : "Tạm tắt an toàn"}</span><strong>{provider}</strong><small>{internationalReady ? "Thanh toán quốc tế đã mở" : "Chưa có nhà cung cấp quốc tế được duyệt; khách không thể thanh toán nhầm"}</small></div>
+          <div><span className={`status ${internationalReady ? "ready" : "pending"}`}>{internationalReady ? "Đang hoạt động" : "Tạm tắt an toàn"}</span><strong>{provider}</strong><small>{internationalReady ? `Thanh toán quốc tế qua PayPal ${process.env.PAYPAL_ENVIRONMENT === "live" ? "Live" : "Sandbox"}` : "Chưa đủ Client ID và Secret; khách không thể thanh toán nhầm"}</small></div>
           <div><span className={`status ${emailReady ? "ready" : "pending"}`}>{emailReady ? "Đã kết nối" : "Cần cấu hình"}</span><strong>Resend</strong><small>Gửi Skill miễn phí và liên kết bàn giao</small></div>
           <div><span className={`status ${supabaseReady ? "ready" : "pending"}`}>{supabaseReady ? "Đã kết nối" : "Kiểm tra cấu hình"}</span><strong>Supabase</strong><small>Danh mục, đơn hàng và file riêng tư dùng chung</small></div>
         </div>
