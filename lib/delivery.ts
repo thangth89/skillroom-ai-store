@@ -44,15 +44,13 @@ export async function revokeOrderDownloadLinks(orderId: string) {
   if (itemError) throw new Error("Không thể đọc liên kết tải của đơn hàng.");
   if (!items?.length) return;
 
-  const now = new Date().toISOString();
   const { error } = await supabase
     .from("download_tokens")
-    .update({ expires_at: now })
+    .delete()
     .in(
       "order_item_id",
       items.map((item) => item.id),
-    )
-    .gt("expires_at", now);
+    );
 
   if (error) throw new Error("Không thể thu hồi liên kết tải cũ.");
 }

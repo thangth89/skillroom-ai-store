@@ -38,6 +38,32 @@ export async function GET(
   if (access.status !== "ready") return errorResponse("The Skill file is not available.", 403);
 
   const supabase = createAdminClient();
+  const now = new Date().toISOString();
+  const { data: updated, error: updateError } = await supabase
+    .from("download_tokens")
+    .update({
+      download_count: access.token.download_count + 1,
+      used_at: now,
+    })
+    .eq("id", access.token.id)
+    .eq("download_count", access.token.download_count)
+    .gt("expires_at", now)
+    .select("id")
+    .maybeSingle<{ id: string }>();
+
+  if (updateError || !updated) {
+    return errorResponse("This download link was revoked, expired, or just used in another request.", 410);
+  }
+
+  const { data: order, error: orderError } = await supabase
+    .from("orders")
+    .select("status")
+    .eq("id", access.item.order_id)
+    .maybeSingle<{ status: string }>();
+  if (orderError || order?.status !== "paid") {
+    return errorResponse("This download link is no longer available for this order.", 410);
+  }
+
   const fileName = safeDownloadName(
     access.item.skill_name,
     access.item.version,
@@ -45,24 +71,9 @@ export async function GET(
   );
   const { data, error } = await supabase.storage
     .from(getSkillStorageBucket())
-    .createSignedUrl(access.item.file_path, 60, { download: fileName });
+    .createSignedUrl(access.item.file_path, 15, { download: fileName });
 
   if (error || !data?.signedUrl) return errorResponse("We could not create the file download.", 500);
-
-  const { data: updated, error: updateError } = await supabase
-    .from("download_tokens")
-    .update({
-      download_count: access.token.download_count + 1,
-      used_at: new Date().toISOString(),
-    })
-    .eq("id", access.token.id)
-    .eq("download_count", access.token.download_count)
-    .select("id")
-    .maybeSingle<{ id: string }>();
-
-  if (updateError || !updated) {
-    return errorResponse("Another download was just recorded. Please try again.", 409);
-  }
 
   return Response.redirect(data.signedUrl, 302);
 }

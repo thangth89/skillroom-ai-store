@@ -181,6 +181,7 @@ export async function POST(request: Request) {
         await revokeOrderDownloadLinks(order.id);
       } catch (error) {
         console.error("Unable to revoke download links after PayPal refund:", error);
+        return Response.json({ success: false }, { status: 500 });
       }
     }
   }
