@@ -8,6 +8,7 @@ type FreeSkill = {
   name_en: string | null;
   version: string;
   file_path: string;
+  price: number;
   is_free: boolean;
 };
 
@@ -48,13 +49,16 @@ export async function POST(request: Request) {
   }
 
   const supabase = createAdminClient();
-  const { data: skill, error: skillError } = await supabase
+  const freeSkillQuery = supabase
     .from("skills")
-    .select("id, slug, name, name_en, version, file_path, is_free")
+    .select("id, slug, name, name_en, version, file_path, price, is_free")
     .eq("slug", slug)
     .eq("status", "published")
-    .eq("is_free", true)
-    .not("file_path", "is", null)
+    .not("file_path", "is", null);
+
+  const { data: skill, error: skillError } = await (vi
+    ? freeSkillQuery.eq("price", 0)
+    : freeSkillQuery.eq("is_free", true))
     .maybeSingle<FreeSkill>();
 
   if (missingFreeSchema(skillError)) {

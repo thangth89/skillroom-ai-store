@@ -101,7 +101,10 @@ function mapSkill(row: PublicSkillRow, locale: StoreLocale): SkillProduct {
     description: english ? row.description_en || row.description : row.description,
     priceVnd: row.price,
     priceUsdCents: row.price_usd_cents,
-    isFree: row.is_free === true,
+    // Vietnam and international sales types are intentionally independent.
+    // A zero VND price means free in Vietnam; is_free belongs to the
+    // international storefront only.
+    isFree: english ? row.is_free === true : row.price === 0,
     internationalCheckoutUrl: row.lemon_checkout_url,
     category: english ? row.category_en || row.category : row.category,
     version: row.version,

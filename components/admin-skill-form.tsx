@@ -18,7 +18,10 @@ function lines(items: string[] | undefined) {
 export function AdminSkillForm({ skill }: { skill?: SkillRecord }) {
   const action = skill ? updateSkill : createSkill;
   const [state, formAction, pending] = useActionState(action, initialState);
-  const [saleType, setSaleType] = useState<"free" | "paid">(
+  const [vietnamSaleType, setVietnamSaleType] = useState<"free" | "paid">(
+    skill?.price === 0 ? "free" : "paid",
+  );
+  const [internationalSaleType, setInternationalSaleType] = useState<"free" | "paid">(
     skill?.is_free ? "free" : "paid",
   );
 
@@ -62,10 +65,6 @@ export function AdminSkillForm({ skill }: { skill?: SkillRecord }) {
             <input defaultValue={skill?.version ?? "V1.0"} name="version" required />
           </label>
           <label>
-            <span>Vietnam price (VND) *</span>
-            <input defaultValue={skill?.price} min={0} name="price" step={1000} type="number" required />
-          </label>
-          <label>
             <span>Status *</span>
             <select defaultValue={skill?.status ?? "draft"} name="status">
               <option value="draft">Draft</option>
@@ -80,6 +79,67 @@ export function AdminSkillForm({ skill }: { skill?: SkillRecord }) {
         </div>
       </section>
 
+      <section className="admin-form-section vietnam-fields">
+        <div className="admin-form-heading">
+          <span>VIETNAMESE STOREFRONT</span>
+          <p>Set the Vietnamese sales type and VND price independently from the international store.</p>
+        </div>
+        <div className="admin-form-grid">
+          <fieldset className="sale-type-field wide-field">
+            <legend>Vietnam sales type *</legend>
+            <div className="sale-type-options">
+              <label className={vietnamSaleType === "free" ? "selected" : ""}>
+                <input
+                  checked={vietnamSaleType === "free"}
+                  name="sale_type_vn"
+                  onChange={() => setVietnamSaleType("free")}
+                  type="radio"
+                  value="free"
+                />
+                <span>
+                  <strong>Free in Vietnam</strong>
+                  <small>Vietnamese customers enter an email and receive the Skill without payment.</small>
+                </span>
+              </label>
+              <label className={vietnamSaleType === "paid" ? "selected" : ""}>
+                <input
+                  checked={vietnamSaleType === "paid"}
+                  name="sale_type_vn"
+                  onChange={() => setVietnamSaleType("paid")}
+                  type="radio"
+                  value="paid"
+                />
+                <span>
+                  <strong>Paid in Vietnam</strong>
+                  <small>Vietnamese customers pay through payOS/VietQR at the VND price below.</small>
+                </span>
+              </label>
+            </div>
+          </fieldset>
+          {vietnamSaleType === "free" ? (
+            <div className="sale-type-summary wide-field free">
+              <strong>Free delivery is active in Vietnam</strong>
+              <span>The Vietnamese storefront will display “Miễn phí” and deliver the file by email.</span>
+              <input name="price" type="hidden" value="0" />
+            </div>
+          ) : (
+            <label>
+              <span>Vietnam price (VND) *</span>
+              <input
+                defaultValue={skill?.price && skill.price > 0 ? skill.price : ""}
+                min={1000}
+                name="price"
+                placeholder="100000"
+                step={1000}
+                type="number"
+                required
+              />
+              <small>This price is independent from the international USD price.</small>
+            </label>
+          )}
+        </div>
+      </section>
+
       <section className="admin-form-section international-fields">
         <div className="admin-form-heading">
           <span>INTERNATIONAL STOREFRONT</span>
@@ -89,11 +149,11 @@ export function AdminSkillForm({ skill }: { skill?: SkillRecord }) {
           <fieldset className="sale-type-field wide-field">
             <legend>Sales type *</legend>
             <div className="sale-type-options">
-              <label className={saleType === "free" ? "selected" : ""}>
+              <label className={internationalSaleType === "free" ? "selected" : ""}>
                 <input
-                  checked={saleType === "free"}
-                  name="sale_type"
-                  onChange={() => setSaleType("free")}
+                  checked={internationalSaleType === "free"}
+                  name="sale_type_international"
+                  onChange={() => setInternationalSaleType("free")}
                   type="radio"
                   value="free"
                 />
@@ -102,11 +162,11 @@ export function AdminSkillForm({ skill }: { skill?: SkillRecord }) {
                   <small>Customer enters an email address and receives a private download link. No payment.</small>
                 </span>
               </label>
-              <label className={saleType === "paid" ? "selected" : ""}>
+              <label className={internationalSaleType === "paid" ? "selected" : ""}>
                 <input
-                  checked={saleType === "paid"}
-                  name="sale_type"
-                  onChange={() => setSaleType("paid")}
+                  checked={internationalSaleType === "paid"}
+                  name="sale_type_international"
+                  onChange={() => setInternationalSaleType("paid")}
                   type="radio"
                   value="paid"
                 />
@@ -125,7 +185,7 @@ export function AdminSkillForm({ skill }: { skill?: SkillRecord }) {
             <span>English category</span>
             <input defaultValue={skill?.category_en ?? ""} name="category_en" placeholder="Model Assembly" />
           </label>
-          {saleType === "free" ? (
+          {internationalSaleType === "free" ? (
             <div className="sale-type-summary wide-field free">
               <strong>Free delivery is active</strong>
               <span>The uploaded Skill file will be sent by email. The storefront price will display as Free.</span>

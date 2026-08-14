@@ -8,7 +8,6 @@ type PurchasableSkill = {
   price: number;
   version: string;
   file_path: string;
-  is_free: boolean | null;
 };
 
 function validEmail(value: unknown): value is string {
@@ -70,14 +69,16 @@ export async function POST(request: Request) {
   const supabase = createAdminClient();
   const { data: skill, error: skillError } = await supabase
     .from("skills")
-    .select("id, slug, name, price, version, file_path, is_free")
+    .select("id, slug, name, price, version, file_path")
     .eq("slug", slug)
     .eq("status", "published")
     .not("file_path", "is", null)
     .not("video_url", "is", null)
     .maybeSingle<PurchasableSkill>();
 
-  if (skillError || !skill || skill.is_free === true) {
+  // The international is_free flag must never block a paid Vietnamese order.
+  // Vietnam is free only when its independent VND price is exactly zero.
+  if (skillError || !skill || skill.price <= 0) {
     return Response.json({ error: "Skill này chưa sẵn sàng để thanh toán." }, { status: 404 });
   }
 
