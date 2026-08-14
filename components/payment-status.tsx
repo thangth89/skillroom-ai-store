@@ -5,11 +5,11 @@ import { useRouter } from "next/navigation";
 import type { OrderStatus } from "@/lib/orders";
 
 const statusLabel: Record<OrderStatus, string> = {
-  pending: "Đang chờ tiền",
-  paid: "Đã thanh toán",
-  cancelled: "Đã huỷ",
-  expired: "Đã hết hạn",
-  refunded: "Đã hoàn tiền",
+  pending: "Awaiting payment",
+  paid: "Paid",
+  cancelled: "Cancelled",
+  expired: "Expired",
+  refunded: "Refunded",
 };
 
 export function PaymentStatus({ orderCode, initialStatus }: { orderCode: string; initialStatus: OrderStatus }) {
@@ -33,7 +33,7 @@ export function PaymentStatus({ orderCode, initialStatus }: { orderCode: string;
           router.refresh();
         }
       } catch {
-        // Mất mạng tạm thời: lần kiểm tra kế tiếp sẽ thử lại.
+        // Temporary network loss: the next polling cycle will retry.
       }
     };
 

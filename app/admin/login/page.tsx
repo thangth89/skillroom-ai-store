@@ -4,7 +4,7 @@ import { LoginForm } from "@/app/admin/login/login-form";
 import { hasAdminAuthConfig } from "@/lib/supabase/config";
 
 export const metadata: Metadata = {
-  title: "Đăng nhập quản trị | Skillroom",
+  title: "Admin sign in | Skillroom",
   robots: { index: false, follow: false },
 };
 
@@ -31,20 +31,20 @@ export default async function AdminLoginPage({ searchParams }: LoginPageProps) {
           <span>Skillroom</span>
         </Link>
 
-        <span className="admin-login-eyebrow">Khu vực riêng tư</span>
-        <h1>Đăng nhập quản trị</h1>
-        <p>Chỉ tài khoản admin được cấp quyền mới có thể truy cập.</p>
+        <span className="admin-login-eyebrow">Private access</span>
+        <h1>Admin sign in</h1>
+        <p>Only authorized Skillroom administrators can continue.</p>
 
         {needsSetup ? (
           <div className="admin-setup-notice">
-            Chưa cấu hình Supabase. Hãy làm theo tài liệu thiết lập và thêm biến
-            môi trường trên Vercel trước khi đăng nhập.
+            Supabase is not configured for this deployment. Add the required
+            Vercel environment variables before signing in.
           </div>
         ) : null}
 
         <LoginForm nextPath={nextPath} />
         <Link className="admin-login-back" href="/">
-          ← Quay lại cửa hàng
+          ← Back to storefront
         </Link>
       </section>
     </main>

@@ -38,27 +38,27 @@ export default async function PaymentPage({
   return (
     <><SiteHeader /><main className="payment-page shell">
       <section className="payment-card">
-        <div className="payment-heading"><div><span className="section-index">THANH TOÁN / BƯỚC 2</span><h1>Quét mã để thanh toán.</h1></div><PaymentStatus orderCode={order.order_code} initialStatus={order.status} /></div>
-        {query.cancelled === "1" ? <div className="payment-cancel-note">Bạn đã quay lại từ payOS. Đơn vẫn chờ thanh toán cho tới khi hết hạn.</div> : null}
+        <div className="payment-heading"><div><span className="section-index">LEGACY LOCAL PAYMENT</span><h1>Scan to complete the transfer.</h1></div><PaymentStatus orderCode={order.order_code} initialStatus={order.status} /></div>
+        {query.cancelled === "1" ? <div className="payment-cancel-note">You returned from the payment page. This order will remain pending until it expires.</div> : null}
         <div className="payment-grid">
           <div className="qr-placeholder">
-            {qrImage && canPay ? <img className="payment-qr-image" src={qrImage} alt={`Mã VietQR cho đơn ${order.order_code}`} /> : <div className="qr-unavailable">QR không còn khả dụng</div>}
-            <small>Mã VietQR đã điền sẵn số tiền và nội dung chuyển khoản.</small>
+            {qrImage && canPay ? <img className="payment-qr-image" src={qrImage} alt={`Payment QR for order ${order.order_code}`} /> : <div className="qr-unavailable">QR no longer available</div>}
+            <small>The amount and required transfer reference are pre-filled.</small>
           </div>
           <div className="payment-info">
             <dl>
-              <div><dt>Mã đơn</dt><dd>{order.order_code}</dd></div>
-              <div><dt>Sản phẩm</dt><dd>{item.skill_name}</dd></div>
-              <div><dt>Số tiền</dt><dd>{formatVnd(order.total)}</dd></div>
-              <div><dt>Gửi tới</dt><dd>{maskEmail(order.customer_email)}</dd></div>
+              <div><dt>Order reference</dt><dd>{order.order_code}</dd></div>
+              <div><dt>Product</dt><dd>{item.skill_name}</dd></div>
+              <div><dt>Amount</dt><dd>{formatVnd(order.total)}</dd></div>
+              <div><dt>Deliver to</dt><dd>{maskEmail(order.customer_email)}</dd></div>
               <div className="payment-transfer-row">
-                <dt>Nội dung bắt buộc</dt>
+                <dt>Required reference</dt>
                 <dd className="payment-transfer-value">
                   <code>{transferContent}</code>
                   {transferContent ? (
                     <CopyValueButton
-                      copiedLabel="Đã chép nội dung"
-                      label="Sao chép"
+                      copiedLabel="Reference copied"
+                      label="Copy"
                       value={transferContent}
                     />
                   ) : null}
@@ -66,19 +66,18 @@ export default async function PaymentPage({
               </div>
             </dl>
             <div className="payment-transfer-warning" role="alert">
-              <strong>Không được thay đổi nội dung chuyển khoản</strong>
+              <strong>Do not change the transfer reference</strong>
               <p>
-                Giữ nguyên chính xác <b>{transferContent}</b>. Không sửa, xóa hoặc thêm bất kỳ
-                ký tự nào; nếu nội dung thay đổi, hệ thống có thể không nhận diện được đơn và
-                không gửi Skill tự động.
+                Keep <b>{transferContent}</b> exactly as shown. Do not edit, remove or add any
+                character, or the system may not recognize the order and automatic delivery may fail.
               </p>
             </div>
-            <div className="payment-note"><strong>Chỉ chuyển đúng số tiền trong QR</strong><p>Trang sẽ tự cập nhật sau khi webhook payOS xác nhận giao dịch.</p></div>
-            {order.checkout_url && canPay ? <a className="secondary-button full-button payos-link" href={order.checkout_url} target="_blank" rel="noreferrer">Mở trang thanh toán payOS ↗</a> : null}
+            <div className="payment-note"><strong>Transfer the exact amount shown</strong><p>This page updates automatically after the provider confirms the transaction.</p></div>
+            {order.checkout_url && canPay ? <a className="secondary-button full-button payos-link" href={order.checkout_url} target="_blank" rel="noreferrer">Open secure payment page ↗</a> : null}
           </div>
         </div>
-        <div className="prototype-note">Không đóng trang trong lúc chuyển khoản. Nếu ngân hàng đã báo thành công, hãy chờ vài giây để hệ thống xác minh.</div>
-        <Link className="back-link payment-back-link" href={`/skills/${item.skill_slug}`}>← Quay lại sản phẩm</Link>
+        <div className="prototype-note">Keep this page open during the transfer. If your bank confirms payment, allow a few seconds for verification.</div>
+        <Link className="back-link payment-back-link" href={`/skills/${item.skill_slug}`}>← Back to Skill</Link>
       </section>
     </main><SiteFooter /></>
   );

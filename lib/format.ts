@@ -6,6 +6,27 @@ export function formatVnd(value: number) {
   }).format(value);
 }
 
+export function formatUsdCents(value: number) {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: value % 100 === 0 ? 0 : 2,
+    maximumFractionDigits: 2,
+  }).format(value / 100);
+}
+
+export function formatOrderAmount(value: number, currency: string) {
+  const normalizedCurrency = currency.toUpperCase();
+  if (normalizedCurrency === "VND") return formatVnd(value);
+  if (normalizedCurrency === "USD") return formatUsdCents(value);
+
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: normalizedCurrency,
+    maximumFractionDigits: 2,
+  }).format(value / 100);
+}
+
 export function maskEmail(email: string) {
   const [local, domain] = email.split("@");
   if (!local || !domain) return "***";

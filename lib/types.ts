@@ -6,7 +6,10 @@ export type SkillProduct = {
   eyebrow: string;
   shortDescription: string;
   description: string;
-  price: number;
+  priceVnd: number;
+  priceUsdCents: number | null;
+  isFree: boolean;
+  internationalCheckoutUrl: string | null;
   category: SkillCategory;
   version: string;
   videoSrc: string;

@@ -274,6 +274,8 @@ h1, h2, h3, p { text-wrap: pretty; }
 .skill-card-body > p { min-height: 0; margin: 0; color: var(--muted); font-size: 13px; line-height: 1.65; }
 .card-bottom { margin-top: 20px; border-top: 1px solid var(--line); padding-top: 17px; }
 .card-bottom strong { color: var(--ink); font-size: 16px; font-weight: 800; }
+.card-bottom strong.free-price,
+.detail-buy-row strong.free-price { color: var(--success); }
 .text-link { color: var(--brand); font-size: 12px; font-weight: 750; }
 .text-link:hover { color: var(--brand-dark); }
 .catalog-more { margin-top: 36px; border-top: 1px solid #ccd8ce; padding-top: 24px; }
@@ -363,7 +365,7 @@ h1, h2, h3, p { text-wrap: pretty; }
 }
 .detail-content h2 { font-size: 23px; font-weight: 750; line-height: 1.25; }
 .detail-content ul { gap: 12px; margin-top: 24px; }
-.detail-content ul:empty::after { color: var(--muted); content: "Thông tin đang được cập nhật."; font-size: 13px; }
+.detail-content ul:empty::after { color: var(--muted); content: "Details are being prepared."; font-size: 13px; }
 .detail-content li { padding-left: 21px; color: var(--muted); font-size: 13px; line-height: 1.65; }
 .detail-content li::before { color: var(--brand); content: "✓"; font-weight: 800; }
 .detail-cta { gap: 40px; margin-block: 64px; border-radius: 22px; background: var(--brand-dark); padding: 38px 42px; }
@@ -379,8 +381,15 @@ h1, h2, h3, p { text-wrap: pretty; }
 .checkout-form { margin-top: 28px; }
 .checkout-form > label:first-child { margin-bottom: 9px; font-size: 13px; font-weight: 750; }
 .checkout-form input[type="email"] { height: 54px; border-color: #bdc9c0; border-radius: 11px; background: #fff; font-size: 14px; }
-.field-help, .secure-note { color: var(--muted); font-size: 11px; }
-.check-row { margin: 20px 0; font-size: 12px; }
+.field-help, .secure-note { color: var(--muted); font-size: 11px; line-height: 1.55; }
+.field-help { min-height: 18px; margin: 9px 0 0; }
+.check-row { margin: 20px 0; font-size: 12px; line-height: 1.55; }
+.check-row.optional-consent { clear: both; align-items: flex-start; margin: 18px 0 20px; }
+.check-row.optional-consent input { flex: 0 0 17px; margin-top: 1px; }
+.check-row.optional-consent span { display: block; min-width: 0; }
+.form-success { margin: 14px 0; border: 1px solid #aed0b8; border-radius: 10px; background: #e8f5eb; padding: 12px 14px; color: #21633d; font-size: 12px; line-height: 1.55; }
+.payment-method-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 7px; margin-top: 16px; }
+.payment-method-list span { display: inline-flex; min-height: 28px; align-items: center; border: 1px solid #cbd5cd; border-radius: 7px; background: #fff; padding: 0 9px; color: #39483e; font-size: 9px; font-weight: 800; letter-spacing: .02em; }
 .order-summary { top: 92px; border-radius: 20px; background: var(--brand-dark); padding: 26px; box-shadow: var(--shadow-md); }
 .order-summary > span { font-family: var(--font-sans); }
 .summary-preview { min-height: 170px; margin: 18px 0 22px; }
@@ -472,6 +481,7 @@ h1, h2, h3, p { text-wrap: pretty; }
 /* Admin forms and order detail */
 .admin-skill-form { gap: 15px; }
 .admin-form-section { grid-template-columns: minmax(190px, .5fr) minmax(0, 1.5fr); gap: 34px; border-radius: 15px; padding: 25px; }
+.admin-form-section.international-fields { border-color: #b9d7c2; background: #f4faf5; }
 .admin-form-heading > span { color: var(--brand); font-size: 10px; }
 .admin-form-heading > p { margin-top: 8px; color: var(--muted); font-size: 12px; line-height: 1.65; }
 .admin-form-grid { gap: 17px; }
@@ -634,4 +644,47 @@ h1, h2, h3, p { text-wrap: pretty; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
+
+/* Unified Vietnam / international storefront */
+.header-actions { display: flex; align-items: center; gap: 12px; }
+.locale-switcher {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid #d4ddd6;
+  border-radius: 9px;
+  background: #fff;
+  padding: 0 10px;
+  color: #849087;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 760;
+  letter-spacing: .04em;
+}
+.locale-switcher i { color: #c1c9c3; font-style: normal; }
+.locale-switcher .active { color: var(--brand-dark); }
+.button-disabled { opacity: .55; cursor: not-allowed; pointer-events: none; }
+.checkout-unavailable { margin: 20px 0; border: 1px solid #dfcb92; border-radius: 12px; background: #fbf4dc; padding: 15px 16px; color: #644f13; }
+.checkout-unavailable strong { display: block; font-size: 13px; }
+.checkout-unavailable p { margin: 5px 0 0; font-size: 11px; line-height: 1.6; }
+.admin-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.settings-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.order-table-row { min-width: 940px; grid-template-columns: 1.45fr .65fr 1.45fr .75fr 1fr; }
+.order-table-row > span:nth-child(2) { align-items: flex-start; flex-direction: column; gap: 5px; }
+.market-status { display: inline-flex; width: max-content; background: #e5ece6 !important; color: #46564a !important; font-style: normal; }
+.market-status.vietnam { background: #dff0d5 !important; color: #3c692c !important; }
+.market-status.international { background: #dce8f5 !important; color: #345e87 !important; }
+
+@media (max-width: 1080px) {
+  .admin-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 640px) {
+  .header-actions { gap: 7px; }
+  .locale-switcher { min-height: 36px; padding-inline: 8px; }
+  .header-cta { padding-inline: 10px; }
+  .header-cta span { display: none; }
+  .admin-stats, .settings-grid { grid-template-columns: 1fr; }
 }

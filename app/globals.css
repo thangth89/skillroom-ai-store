@@ -176,6 +176,11 @@ button { color: inherit; }
 
 .checkout-page { display: grid; grid-template-columns: 1fr 390px; gap: 100px; align-items: start; padding-block: 80px 110px; }.checkout-main { max-width: 650px; }.checkout-main .back-link { margin-bottom: 62px; }.checkout-main h1 { margin: 0; font-size: clamp(52px, 6vw, 78px); line-height: .98; letter-spacing: -.065em; font-weight: 610; }.checkout-main > p { margin: 22px 0 0; color: var(--muted); font-size: 15px; line-height: 1.7; }
 .checkout-form { margin-top: 38px; }.checkout-form > label:first-child { display: block; margin-bottom: 10px; font-size: 12px; font-weight: 680; }.checkout-form input[type="email"] { width: 100%; height: 58px; border: 1px solid #c8c6bd; border-radius: 14px; outline: none; background: var(--white); padding: 0 17px; font-size: 15px; }.checkout-form input[type="email"]:focus { border-color: #628b3c; box-shadow: 0 0 0 4px rgba(98,139,60,.12); }.field-help { margin: 9px 0 0; color: #868980; font-size: 11px; }.check-row { display: flex; align-items: flex-start; gap: 11px; margin: 25px 0; color: #5f625b; font-size: 12px; line-height: 1.5; }.check-row input { width: 17px; height: 17px; margin: 0; accent-color: var(--ink); }.form-error { border-radius: 10px; background: #ffe0da; padding: 11px 13px; color: #812e20; font-size: 12px; }.secure-note { margin: 14px 0 0; color: #85887f; font-size: 10px; line-height: 1.5; text-align: center; }
+.free-claim-success { display: grid; grid-template-columns: auto 1fr; gap: 15px; align-items: flex-start; margin-top: 32px; border: 1px solid #afd0b7; border-radius: 18px; background: #edf8ef; padding: 22px; box-shadow: 0 16px 45px rgba(28,82,45,.08); }
+.free-claim-success-mark { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 50%; background: #2f7345; color: white; font-size: 19px; font-weight: 800; }
+.free-claim-success strong { display: block; color: #194d2b; font-size: 17px; }
+.free-claim-success p { margin: 7px 0 0; color: #4d6755; font-size: 12px; line-height: 1.65; }
+.free-claim-success .secondary-button { grid-column: 2; justify-self: flex-start; min-height: 41px; padding: 10px 15px; font-size: 10px; }
 .order-summary { position: sticky; top: 110px; border-radius: var(--radius-md); background: var(--ink); padding: 28px; color: white; }.order-summary > span { color: #777d73; font: 650 9px var(--font-geist-mono), monospace; letter-spacing: .1em; }.summary-preview { position: relative; min-height: 190px; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; margin: 22px 0 26px; border-radius: 15px; background: radial-gradient(circle at 80% 20%, var(--accent), transparent 23%), linear-gradient(135deg, var(--accent-soft), #090b08 80%); padding: 18px; }.summary-preview::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(120deg, transparent 0 16px, rgba(255,255,255,.03) 16px 18px); }.summary-preview small, .summary-preview strong, .summary-preview em { position: relative; z-index: 1; }.summary-preview small { color: #b4b8b0; font: 600 9px var(--font-geist-mono), monospace; text-transform: uppercase; }.summary-preview strong { margin-top: 6px; font-size: 20px; }.summary-preview em { margin-top: 4px; color: #959a91; font-size: 11px; font-style: normal; }.summary-line, .summary-total { display: flex; justify-content: space-between; gap: 20px; padding: 10px 0; color: #92978e; font-size: 12px; }.summary-line strong { color: #cdd1c9; }.summary-total { border-top: 1px solid rgba(255,255,255,.15); margin-top: 9px; padding-top: 18px; color: white; }.summary-total strong { font-size: 17px; }.order-summary > p { margin: 25px 0 0; color: #737970; font-size: 10px; }
 
 .payment-page, .success-page { min-height: 750px; display: grid; place-items: center; padding-block: 70px; }.payment-card { width: min(900px, 100%); border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--white); padding: 42px; box-shadow: 0 30px 80px rgba(17,19,15,.08); }.payment-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 30px; border-bottom: 1px solid var(--line); padding-bottom: 28px; }.payment-heading h1 { margin: 0; font-size: 39px; letter-spacing: -.05em; }.waiting-dot { display: inline-flex; align-items: center; gap: 7px; border-radius: 999px; background: #f0ead1; padding: 8px 11px; color: #735d15; font-size: 10px; font-weight: 650; }.waiting-dot::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #d7a920; animation: pulse 1.4s infinite; }
@@ -207,6 +212,12 @@ button { color: inherit; }
 .skill-sort-product { min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 3px; }
 .skill-sort-product strong { overflow: hidden; max-width: 100%; text-overflow: ellipsis; white-space: nowrap; }
 .skill-sort-product small { overflow: hidden; max-width: 100%; color: #969990; text-overflow: ellipsis; white-space: nowrap; }
+.skill-sales-cell { display: flex; min-width: 0; flex-wrap: wrap; align-items: center; gap: 5px 7px; }
+.skill-sales-cell strong { font-size: 11px; }
+.skill-sales-cell small { flex-basis: 100%; color: #a24a37; font-size: 9px; }
+.skill-sales-badge { border-radius: 999px; padding: 5px 7px; font-size: 8px; font-style: normal; font-weight: 760; letter-spacing: .04em; text-transform: uppercase; }
+.skill-sales-badge.free { background: #dff2cf; color: #3d6b22; }
+.skill-sales-badge.paid { background: #dce7f5; color: #315b87; }
 .skill-sort-status { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .skill-sort-status i { border-radius: 999px; background: #dcefcf; padding: 5px 7px; color: #416725; font-size: 8px; font-style: normal; white-space: nowrap; }
 .skill-sort-status a { color: #62675e; font-size: 10px; text-decoration: underline; text-underline-offset: 3px; }
@@ -240,6 +251,19 @@ button { color: inherit; }
 .admin-form-grid .wide-field { grid-column: 1 / -1; }
 .admin-form-grid .checkbox-field { grid-column: 1 / -1; flex-direction: row; align-items: center; gap: 9px; }
 .checkbox-field input { width: 17px; height: 17px; accent-color: var(--ink); }
+.sale-type-field { min-width: 0; margin: 0; border: 0; padding: 0; }
+.sale-type-field legend { margin-bottom: 9px; padding: 0; font-size: 11px; font-weight: 720; }
+.sale-type-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.admin-form-grid .sale-type-options label { min-height: 112px; display: grid; grid-template-columns: auto 1fr; gap: 11px; align-items: flex-start; border: 1px solid #cfcdc4; border-radius: 13px; background: white; padding: 16px; cursor: pointer; transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease; }
+.admin-form-grid .sale-type-options label.selected { border-color: #5d853e; background: #f1f8ec; box-shadow: 0 0 0 3px rgba(93,133,62,.09); }
+.sale-type-options input { width: 17px; height: 17px; margin: 2px 0 0; accent-color: #315f39; }
+.sale-type-options label > span { display: flex; flex-direction: column; gap: 6px; }
+.sale-type-options strong { font-size: 13px; }
+.sale-type-options small { color: #737970; font-size: 10px; line-height: 1.55; }
+.sale-type-summary { border: 1px solid #bdd6aa; border-radius: 12px; background: #edf7e6; padding: 14px 15px; }
+.sale-type-summary strong, .sale-type-summary span { display: block; }
+.sale-type-summary strong { color: #345c22; font-size: 12px; }
+.sale-type-summary span { margin-top: 4px; color: #5c7151; font-size: 10px; line-height: 1.55; }
 .color-fields { max-width: 430px; }
 .admin-form-error { border: 1px solid #ebbbb2; border-radius: 11px; background: #ffe0da; padding: 13px 15px; color: #812e20; font-size: 11px; line-height: 1.55; }
 .admin-form-actions { position: sticky; z-index: 10; bottom: 18px; display: flex; justify-content: flex-end; gap: 10px; border: 1px solid rgba(17,19,15,.1); border-radius: 16px; background: rgba(248,247,242,.92); backdrop-filter: blur(14px); padding: 13px; box-shadow: 0 14px 40px rgba(17,19,15,.08); }
@@ -350,8 +374,11 @@ button { color: inherit; }
   .admin-form-section { padding: 20px 16px; }
   .admin-form-grid { grid-template-columns: 1fr; }
   .admin-form-grid .wide-field, .admin-form-grid .checkbox-field { grid-column: auto; }
+  .sale-type-options { grid-template-columns: 1fr; }
   .admin-form-actions { bottom: 10px; }
   .admin-form-actions .primary-button, .admin-form-actions .secondary-button { min-height: 46px; padding-inline: 17px; }
+  .free-claim-success { grid-template-columns: 1fr; }
+  .free-claim-success .secondary-button { grid-column: 1; width: 100%; justify-content: center; }
   .order-detail-actions, .order-detail-actions form, .order-detail-actions .primary-button, .order-detail-actions .secondary-button { width: 100%; }
   .order-detail-actions .primary-button, .order-detail-actions .secondary-button { justify-content: center; }
   .order-detail-overview { grid-template-columns: 1fr; }

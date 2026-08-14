@@ -37,6 +37,17 @@ type ParsedSkill = {
   deliverables: string[];
   outcomes: string[];
   requirements: string[];
+  name_en: string | null;
+  eyebrow_en: string;
+  short_description_en: string;
+  description_en: string;
+  category_en: string;
+  price_usd_cents: number | null;
+  is_free: boolean;
+  lemon_checkout_url: string | null;
+  deliverables_en: string[];
+  outcomes_en: string[];
+  requirements_en: string[];
 };
 
 const statuses = new Set<SkillStatus>(["draft", "published", "archived"]);
@@ -71,35 +82,80 @@ function parseSkill(formData: FormData):
   const videoValue = getText(formData, "video_url");
   const accent = getText(formData, "accent") || "#b8ff6a";
   const accentSoft = getText(formData, "accent_soft") || "#19351e";
+  const nameEn = getText(formData, "name_en");
+  const eyebrowEn = getText(formData, "eyebrow_en");
+  const shortDescriptionEn = getText(formData, "short_description_en");
+  const descriptionEn = getText(formData, "description_en");
+  const categoryEn = getText(formData, "category_en");
+  const usdPriceText = getText(formData, "price_usd");
+  const saleType = getText(formData, "sale_type");
+  const isFree = saleType === "free";
+  // Giữ tên cột cũ để không cần migration, nhưng dùng nó làm URL checkout
+  // chung cho bất kỳ nhà cung cấp quốc tế nào được duyệt sau này.
+  const internationalCheckoutValue = getText(formData, "lemon_checkout_url");
+  const usdPrice = usdPriceText === "" ? null : Number(usdPriceText);
+  const priceUsdCents = isFree ? 0 : usdPrice === null ? null : Math.round(usdPrice * 100);
+
+  let internationalCheckoutUrl: string | null = null;
+  if (internationalCheckoutValue && !isFree) {
+    try {
+      const parsedUrl = new URL(internationalCheckoutValue);
+      if (parsedUrl.protocol !== "https:") {
+        throw new Error("invalid checkout URL");
+      }
+      internationalCheckoutUrl = parsedUrl.toString();
+    } catch {
+      return { data: null, error: "The international Checkout URL must be a valid HTTPS address." };
+    }
+  }
+
+  if (usdPriceText && (!Number.isFinite(usdPrice) || usdPrice! < 0 || usdPrice! > 1000000)) {
+    return { data: null, error: "The USD price must be between 0 and 1,000,000." };
+  }
 
   if (!name || name.length > 120) {
-    return { data: null, error: "Tên Skill là bắt buộc và tối đa 120 ký tự." };
+    return { data: null, error: "The Skill name is required and limited to 120 characters." };
   }
 
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
     return {
       data: null,
-      error: "Đường dẫn chỉ dùng chữ thường không dấu, số và dấu gạch ngang.",
+      error: "The slug may only contain lowercase letters, numbers and hyphens.",
     };
   }
 
   if (!category || !version || !shortDescription || !description) {
     return {
       data: null,
-      error: "Vui lòng nhập đầy đủ nhóm, phiên bản và phần mô tả Skill.",
+      error: "Enter the category, version and required Skill descriptions.",
     };
   }
 
   if (!Number.isSafeInteger(price) || price < 0) {
-    return { data: null, error: "Giá bán phải là số nguyên không âm." };
+    return { data: null, error: "The VND price must be a non-negative integer." };
   }
 
   if (!statuses.has(statusValue)) {
-    return { data: null, error: "Trạng thái Skill không hợp lệ." };
+    return { data: null, error: "The selected Skill status is invalid." };
   }
 
   if (!/^#[0-9a-fA-F]{6}$/.test(accent) || !/^#[0-9a-fA-F]{6}$/.test(accentSoft)) {
-    return { data: null, error: "Màu giao diện phải ở dạng mã HEX, ví dụ #b8ff6a." };
+    return { data: null, error: "Interface colors must use HEX format, for example #b8ff6a." };
+  }
+
+  if (nameEn && (!categoryEn || !shortDescriptionEn || !descriptionEn)) {
+    return {
+      data: null,
+      error: "An English name requires an English category, card description and full description.",
+    };
+  }
+
+  if (saleType !== "free" && saleType !== "paid") {
+    return { data: null, error: "Choose Free Skill or Paid Skill for the international store." };
+  }
+
+  if (nameEn && !isFree && (priceUsdCents === null || !Number.isSafeInteger(priceUsdCents) || priceUsdCents <= 0)) {
+    return { data: null, error: "Enter a USD price greater than $0 for this paid international Skill." };
   }
 
   let videoUrl: string | null = null;
@@ -109,14 +165,14 @@ function parseSkill(formData: FormData):
       if (parsedUrl.protocol !== "https:") throw new Error("invalid protocol");
       videoUrl = parsedUrl.toString();
     } catch {
-      return { data: null, error: "URL video phải là đường dẫn HTTPS hợp lệ." };
+      return { data: null, error: "The video URL must be a valid HTTPS address." };
     }
   }
 
   if (statusValue === "published" && !videoUrl) {
     return {
       data: null,
-      error: "Hãy thêm URL video thành phẩm trước khi chuyển sang trạng thái Đang bán.",
+      error: "Add a result video URL before publishing this Skill.",
     };
   }
 
@@ -138,6 +194,17 @@ function parseSkill(formData: FormData):
       deliverables: getList(formData, "deliverables"),
       outcomes: getList(formData, "outcomes"),
       requirements: getList(formData, "requirements"),
+      name_en: nameEn || null,
+      eyebrow_en: eyebrowEn,
+      short_description_en: shortDescriptionEn,
+      description_en: descriptionEn,
+      category_en: categoryEn,
+      price_usd_cents: priceUsdCents,
+      is_free: isFree,
+      lemon_checkout_url: internationalCheckoutUrl,
+      deliverables_en: getList(formData, "deliverables_en"),
+      outcomes_en: getList(formData, "outcomes_en"),
+      requirements_en: getList(formData, "requirements_en"),
     },
     error: "",
   };
@@ -154,11 +221,11 @@ function validateUpload(file: File | null) {
   const extension = file.name.split(".").pop()?.toLowerCase() ?? "";
 
   if (!allowedFileExtensions.has(extension)) {
-    return "File Skill chỉ chấp nhận .skill, .zip, .md, .txt hoặc .json.";
+    return "Skill files must use .skill, .zip, .md, .txt or .json format.";
   }
 
   if (file.size > maxFileSize) {
-    return "File Skill không được lớn hơn 4 MB.";
+    return "The Skill file must not exceed 4 MB.";
   }
 
   return "";
@@ -188,9 +255,9 @@ async function uploadSkillFile(slug: string, file: File) {
 
 function dataErrorMessage(message: string, code?: string) {
   if (code === "23505" || message.toLowerCase().includes("duplicate")) {
-    return "Đường dẫn này đã được một Skill khác sử dụng.";
+    return "This slug is already used by another Skill.";
   }
-  return `Không thể lưu Skill: ${message}`;
+  return `Unable to save the Skill: ${message}`;
 }
 
 function isMissingSortOrderError(error: { code?: string; message: string } | null) {
@@ -224,7 +291,7 @@ export async function createSkill(
   await requireAdmin();
 
   if (!hasAdminDataConfig()) {
-    return { error: "Thiếu SUPABASE_SECRET_KEY hoặc SKILL_STORAGE_BUCKET trên Vercel." };
+    return { error: "SUPABASE_SECRET_KEY or SKILL_STORAGE_BUCKET is missing on Vercel." };
   }
 
   const parsed = parseSkill(formData);
@@ -235,13 +302,13 @@ export async function createSkill(
   if (uploadError) return { error: uploadError };
 
   if (parsed.data.status === "published" && !upload) {
-    return { error: "Hãy tải file Skill lên trước khi chuyển sang trạng thái Đang bán." };
+    return { error: "Upload the Skill file before publishing it." };
   }
 
   let filePath: string | null = null;
   if (upload) {
     const result = await uploadSkillFile(parsed.data.slug, upload);
-    if (result.error) return { error: `Không thể tải file lên: ${result.error.message}` };
+    if (result.error) return { error: `Unable to upload the file: ${result.error.message}` };
     filePath = result.path;
   }
 
@@ -249,7 +316,7 @@ export async function createSkill(
   const nextOrder = await getNextSortOrder();
   if (nextOrder.error) {
     if (filePath) await supabase.storage.from(getSkillStorageBucket()).remove([filePath]);
-    return { error: `Không thể xác định vị trí Skill: ${nextOrder.error.message}` };
+    return { error: `Unable to determine the Skill position: ${nextOrder.error.message}` };
   }
 
   const insertData: ParsedSkill & { file_path: string | null; sort_order?: number } = {
@@ -266,7 +333,7 @@ export async function createSkill(
 
   if (error || !data) {
     if (filePath) await supabase.storage.from(getSkillStorageBucket()).remove([filePath]);
-    return { error: dataErrorMessage(error?.message ?? "Lỗi không xác định", error?.code) };
+    return { error: dataErrorMessage(error?.message ?? "Unknown error", error?.code) };
   }
 
   revalidatePath("/admin");
@@ -285,11 +352,11 @@ export async function updateSkill(
   await requireAdmin();
 
   if (!hasAdminDataConfig()) {
-    return { error: "Thiếu SUPABASE_SECRET_KEY hoặc SKILL_STORAGE_BUCKET trên Vercel." };
+    return { error: "SUPABASE_SECRET_KEY or SKILL_STORAGE_BUCKET is missing on Vercel." };
   }
 
   const id = getText(formData, "id");
-  if (!/^[0-9a-f-]{36}$/i.test(id)) return { error: "Mã Skill không hợp lệ." };
+  if (!/^[0-9a-f-]{36}$/i.test(id)) return { error: "The Skill ID is invalid." };
 
   const parsed = parseSkill(formData);
   if (!parsed.data) return { error: parsed.error };
@@ -305,16 +372,16 @@ export async function updateSkill(
     .eq("id", id)
     .maybeSingle<{ file_path: string | null; slug: string }>();
 
-  if (currentError || !current) return { error: "Không tìm thấy Skill cần cập nhật." };
+  if (currentError || !current) return { error: "The Skill to update could not be found." };
 
   if (parsed.data.status === "published" && !upload && !current.file_path) {
-    return { error: "Hãy tải file Skill lên trước khi chuyển sang trạng thái Đang bán." };
+    return { error: "Upload the Skill file before publishing it." };
   }
 
   let nextFilePath = current.file_path;
   if (upload) {
     const result = await uploadSkillFile(parsed.data.slug, upload);
-    if (result.error) return { error: `Không thể tải file lên: ${result.error.message}` };
+    if (result.error) return { error: `Unable to upload the file: ${result.error.message}` };
     nextFilePath = result.path;
   }
 
@@ -354,7 +421,7 @@ export async function reorderSkills(
 
   if (!hasAdminDataConfig()) {
     return {
-      error: "Thiếu cấu hình Supabase trên Vercel.",
+      error: "Supabase is not configured on Vercel.",
       success: "",
       savedIds: null,
     };
@@ -376,7 +443,7 @@ export async function reorderSkills(
 
   if (!validIds) {
     return {
-      error: "Danh sách thứ tự Skill không hợp lệ. Hãy tải lại trang và thử lại.",
+      error: "The Skill order is invalid. Reload the page and try again.",
       success: "",
       savedIds: null,
     };
@@ -389,8 +456,8 @@ export async function reorderSkills(
   if (error) {
     return {
       error: isMissingSortOrderError(error)
-        ? "Chưa kích hoạt chức năng sắp xếp trên Supabase. Hãy chạy migration 202608060002_skill_sort_order.sql."
-        : `Không thể lưu thứ tự Skill: ${error.message}`,
+        ? "Skill ordering is not enabled in Supabase. Run migration 202608060002_skill_sort_order.sql."
+        : `Unable to save the Skill order: ${error.message}`,
       success: "",
       savedIds: null,
     };
@@ -402,7 +469,7 @@ export async function reorderSkills(
 
   return {
     error: "",
-    success: "Đã lưu thứ tự mới và áp dụng ngoài cửa hàng.",
+    success: "The new order was saved and applied to the storefront.",
     savedIds: ids,
   };
 }

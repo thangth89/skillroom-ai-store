@@ -6,7 +6,7 @@ import {
   reorderSkills,
   type SkillOrderActionState,
 } from "@/app/admin/skills/actions";
-import { formatVnd } from "@/lib/format";
+import { formatUsdCents } from "@/lib/format";
 import type { SkillRecord, SkillStatus } from "@/lib/supabase/skill-records";
 
 const initialState: SkillOrderActionState = {
@@ -16,9 +16,9 @@ const initialState: SkillOrderActionState = {
 };
 
 const statusLabel: Record<SkillStatus, string> = {
-  draft: "Bản nháp",
-  published: "Đang bán",
-  archived: "Đã ẩn",
+  draft: "Draft",
+  published: "Published",
+  archived: "Archived",
 };
 
 function moveItem(ids: string[], from: number, to: number) {
@@ -66,8 +66,8 @@ export function AdminSkillSorter({
 
       {!sortReady ? (
         <div className="skill-sort-migration">
-          Chưa kích hoạt cột thứ tự trên Supabase. Cửa hàng vẫn hoạt động theo thứ tự cũ; hãy chạy
-          migration <strong>202608060002_skill_sort_order.sql</strong> để bật nút lưu.
+          Skill ordering is not enabled in Supabase. The store is using its fallback order; run
+          migration <strong>202608060002_skill_sort_order.sql</strong> to enable saving.
         </div>
       ) : null}
       {state.error ? <div className="skill-sort-message error">{state.error}</div> : null}
@@ -77,31 +77,38 @@ export function AdminSkillSorter({
 
       <div className="skill-sort-toolbar">
         <p>
-          Kéo thả sản phẩm hoặc dùng các nút điều hướng. Vị trí 01 sẽ xuất hiện đầu tiên trên trang
-          chủ và trang đầu của Kho Skill.
+          Drag Skills or use the arrow buttons. Position 01 appears first on the homepage and on
+          the first page of the international catalog.
         </p>
         <button
           className="primary-button"
           disabled={!sortReady || pending || !hasChanges}
           type="submit"
         >
-          {pending ? "Đang lưu…" : hasChanges ? "Lưu thứ tự" : "Thứ tự đã lưu"}
+          {pending ? "Saving…" : hasChanges ? "Save order" : "Order saved"}
         </button>
       </div>
 
       <div className="skill-sort-table">
         <div className="skill-sort-row skill-sort-head">
-          <span>Vị trí</span>
-          <span>Sản phẩm</span>
-          <span>Nhóm</span>
-          <span>Giá</span>
-          <span>Trạng thái / Điều khiển</span>
+          <span>Position</span>
+          <span>Skill</span>
+          <span>Category</span>
+          <span>Sales type / Price</span>
+          <span>Status / Controls</span>
         </div>
 
         {orderedIds.map((id, index) => {
           const skill = skillById.get(id);
           if (!skill) return null;
           const disabled = pending || !sortReady;
+          const displayName = skill.name_en?.trim() || skill.name;
+          const displayCategory = skill.category_en?.trim() || skill.category;
+          const displayPrice = skill.is_free
+            ? "Free"
+            : skill.price_usd_cents == null
+              ? "Not set"
+              : formatUsdCents(skill.price_usd_cents);
 
           return (
             <div
@@ -118,25 +125,31 @@ export function AdminSkillSorter({
                 {String(index + 1).padStart(2, "0")}
               </span>
               <span className="skill-sort-product">
-                <strong>{skill.name}</strong>
+                <strong>{displayName}</strong>
                 <small>{skill.version} · /{skill.slug}</small>
               </span>
-              <span>{skill.category}</span>
-              <span>{formatVnd(skill.price)}</span>
+              <span>{displayCategory}</span>
+              <span className="skill-sales-cell">
+                <i className={`skill-sales-badge ${skill.is_free ? "free" : "paid"}`}>
+                  {skill.is_free ? "Free" : "Paid"}
+                </i>
+                <strong>{displayPrice}</strong>
+                {!skill.is_free && !skill.lemon_checkout_url ? <small>Checkout URL missing</small> : null}
+              </span>
               <span className="skill-sort-status">
                 <i className={`skill-status ${skill.status}`}>{statusLabel[skill.status]}</i>
-                <Link href={`/admin/skills/${skill.id}`}>Sửa</Link>
+                <Link href={`/admin/skills/${skill.id}`}>Edit</Link>
                 <span className="skill-sort-controls">
                   <button
-                    aria-label={`Đưa ${skill.name} lên đầu`}
+                    aria-label={`Move ${displayName} to the top`}
                     disabled={disabled || index === 0}
                     onClick={() => move(id, 0)}
                     type="button"
                   >
-                    Đầu
+                    Top
                   </button>
                   <button
-                    aria-label={`Đưa ${skill.name} lên một vị trí`}
+                    aria-label={`Move ${displayName} up one position`}
                     disabled={disabled || index === 0}
                     onClick={() => move(id, index - 1)}
                     type="button"
@@ -144,7 +157,7 @@ export function AdminSkillSorter({
                     ↑
                   </button>
                   <button
-                    aria-label={`Đưa ${skill.name} xuống một vị trí`}
+                    aria-label={`Move ${displayName} down one position`}
                     disabled={disabled || index === orderedIds.length - 1}
                     onClick={() => move(id, index + 1)}
                     type="button"

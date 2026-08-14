@@ -19,9 +19,9 @@ export default async function EditSkillPage({ params, searchParams }: EditSkillP
   if (error || !skill) notFound();
 
   return (
-    <AdminShell eyebrow="NỘI DUNG" title="Chỉnh sửa Skill">
-      {query.created === "1" ? <div className="admin-success-notice">Đã tạo Skill mới.</div> : null}
-      {query.saved === "1" ? <div className="admin-success-notice">Đã lưu thay đổi.</div> : null}
+    <AdminShell eyebrow="CATALOG" title="Edit Skill">
+      {query.created === "1" ? <div className="admin-success-notice">The Skill was created.</div> : null}
+      {query.saved === "1" ? <div className="admin-success-notice">Changes saved.</div> : null}
       <AdminSkillForm skill={skill} />
     </AdminShell>
   );

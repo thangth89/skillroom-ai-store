@@ -1,27 +1,35 @@
+import type { Metadata } from "next";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import { DOWNLOAD_LIMIT } from "@/lib/downloads";
+import { getStoreLocale } from "@/lib/locale";
 
-export const metadata = { title: "Hướng dẫn" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getStoreLocale()) === "vi" ? "Hướng dẫn" : "How it works" };
+}
 
-export default function SupportPage() {
+export default async function SupportPage() {
+  const vi = (await getStoreLocale()) === "vi";
+  const faqs = vi ? [
+    ["Skill miễn phí hoạt động thế nào?", "Chọn Skill có nhãn Miễn phí, nhập đúng email và hệ thống sẽ gửi liên kết tải riêng tư. Không cần thẻ hay tài khoản thanh toán."],
+    ["Tôi thanh toán tại Việt Nam bằng cách nào?", "Đơn trả phí tại Việt Nam dùng VietQR qua payOS. Hãy chuyển đúng số tiền và tuyệt đối không thay đổi nội dung chuyển khoản của đơn."],
+    ["Khách quốc tế đã thanh toán được chưa?", "Skill miễn phí vẫn hoạt động toàn cầu. Thanh toán quốc tế trả phí đang tạm tắt cho tới khi một nhà cung cấp mới được xét duyệt và kết nối an toàn."],
+    ["Video có phải kết quả thật không?", "Có. Video minh họa loại kết quả tạo ra bằng Skill tương ứng và chỉ tải khi bạn chủ động bấm Xem video để tiết kiệm dữ liệu."],
+    ["Nếu nhập sai email thì sao?", "Hãy liên hệ hỗ trợ kèm mã hoặc nội dung chuyển khoản và biên nhận. Email chỉ được sửa sau khi giao dịch được xác minh."],
+    ["Liên kết tải có hiệu lực bao lâu?", `Liên kết riêng tư có hiệu lực 7 ngày và tối đa ${DOWNLOAD_LIMIT} lượt tải. Hãy lưu file về thiết bị và không chia sẻ liên kết.`],
+  ] : [
+    ["How do free Skills work?", "Choose a Skill marked Free, enter a valid email address and we will send a private download link. No card or payment account is required."],
+    ["Can I buy a premium Skill internationally?", "Not yet. International paid checkout is safely disabled while we connect a new approved provider. No payment information is collected by Skillroom during this period."],
+    ["Can customers in Vietnam still pay?", "Yes. The Vietnamese storefront continues to use VietQR through payOS. Customers must transfer the exact amount without changing the payment reference."],
+    ["Are the preview videos real outputs?", "Yes. Each video represents the type of result produced with that Skill and loads only after you click Watch video."],
+    ["What if I enter the wrong email?", "Contact support with your order reference and payment receipt. Delivery is corrected only after the transaction has been verified."],
+    ["How long does the download link last?", `The private link is valid for 7 days and up to ${DOWNLOAD_LIMIT} downloads. Save the file to your device and keep the link private.`],
+  ];
+
   return (
-    <>
-      <SiteHeader />
-      <main>
-        <section className="page-hero shell">
-          <span className="section-index">TRUNG TÂM HỖ TRỢ</span>
-          <h1>Hướng dẫn mua và sử dụng Skill.</h1>
-          <p>Các bước quan trọng được giải thích rõ ràng để bạn xem, mua và nhận sản phẩm số an toàn.</p>
-        </section>
-        <section className="faq shell">
-          <article><span>01</span><div><h2>Tôi nhận Skill bằng cách nào?</h2><p>Sau khi payOS xác nhận chuyển khoản, hệ thống gửi email chứa link tải bảo mật. Link có thời hạn và giới hạn số lượt tải.</p></div></article>
-          <article><span>02</span><div><h2>Có được sửa nội dung chuyển khoản không?</h2><p>Không. Hãy giữ nguyên chính xác nội dung bắt đầu bằng SK đã điền sẵn trong QR. Không sửa, xóa hoặc thêm ký tự vì hệ thống dùng nội dung này để nhận diện đơn và gửi Skill tự động.</p></div></article>
-          <article><span>03</span><div><h2>Video trên thẻ có phải kết quả thật?</h2><p>Đúng. Mỗi video đại diện cho đầu ra của Skill tương ứng. Video chỉ được tải sau khi bạn bấm xem để tiết kiệm dữ liệu.</p></div></article>
-          <article><span>04</span><div><h2>Nếu nhập sai email thì sao?</h2><p>Hãy liên hệ hỗ trợ và cung cấp nội dung chuyển khoản, số tiền, thời gian giao dịch hoặc ảnh biên lai. Bạn không cần nhớ mã đơn; Skill chỉ được gửi lại sau khi thanh toán được đối chiếu chính xác.</p></div></article>
-          <article><span>05</span><div><h2>Skill có được cập nhật không?</h2><p>Chính sách cập nhật được ghi riêng trên từng sản phẩm để bạn biết phiên bản nào nằm trong gói mua.</p></div></article>
-        </section>
-      </main>
-      <SiteFooter />
-    </>
+    <><SiteHeader /><main>
+      <section className="page-hero shell"><span className="section-index">{vi ? "HƯỚNG DẪN & HỖ TRỢ" : "HELP CENTER"}</span><h1>{vi ? "Từ xem video đến nhận Skill." : "From video preview to a Skill in your inbox."}</h1><p>{vi ? "Mọi bước quan trọng để chọn, thanh toán và nhận sản phẩm số an toàn." : "Everything you need to choose, receive and use a digital Skill with confidence."}</p></section>
+      <section className="faq shell">{faqs.map(([title, answer], index) => <article key={title}><span>{String(index + 1).padStart(2, "0")}</span><div><h2>{title}</h2><p>{answer}</p></div></article>)}</section>
+    </main><SiteFooter /></>
   );
 }

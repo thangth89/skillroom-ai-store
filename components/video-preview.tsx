@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { parseVideoSource } from "@/lib/video-source";
+import type { StoreLocale } from "@/lib/locale";
 
 type VideoPreviewProps = {
   id: string;
@@ -11,9 +12,10 @@ type VideoPreviewProps = {
   accentSoft: string;
   className?: string;
   detail?: boolean;
+  locale?: StoreLocale;
 };
 
-export function VideoPreview({ id, src, label, accent, accentSoft, className = "", detail = false }: VideoPreviewProps) {
+export function VideoPreview({ id, src, label, accent, accentSoft, className = "", detail = false, locale = "en" }: VideoPreviewProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [activated, setActivated] = useState(false);
@@ -112,7 +114,7 @@ export function VideoPreview({ id, src, label, accent, accentSoft, className = "
           controls
           playsInline
           preload="none"
-          aria-label={`Video kết quả ${label}`}
+          aria-label={locale === "vi" ? `Video kết quả của ${label}` : `Result video for ${label}`}
           onPlay={() => setPlaying(true)}
           onPause={() => setPlaying(false)}
           onEnded={() => setPlaying(false)}
@@ -134,8 +136,8 @@ export function VideoPreview({ id, src, label, accent, accentSoft, className = "
       <div className="video-vignette" />
       <span className="video-badge">{source.providerLabel}</span>
       {!playing && (
-        <button className="play-button" type="button" onClick={() => void play()} aria-label={`Phát video ${label}`}>
-          <span aria-hidden="true">▶</span><b>Xem video</b>
+        <button className="play-button" type="button" onClick={() => void play()} aria-label={locale === "vi" ? `Phát video của ${label}` : `Play video for ${label}`}>
+          <span aria-hidden="true">▶</span><b>{locale === "vi" ? "Xem video" : "Watch video"}</b>
         </button>
       )}
       {playing && (isFile || source.provider === "youtube") && (
@@ -143,14 +145,14 @@ export function VideoPreview({ id, src, label, accent, accentSoft, className = "
           className="sound-button"
           type="button"
           onClick={toggleSound}
-          aria-label={muted ? "Bật âm thanh" : "Tắt âm thanh"}
+          aria-label={muted ? (locale === "vi" ? "Bật âm thanh" : "Turn sound on") : (locale === "vi" ? "Tắt âm thanh" : "Mute video")}
         >
-          {muted ? "Tắt tiếng" : "Có tiếng"}
+          {muted ? (locale === "vi" ? "Đang tắt tiếng" : "Muted") : (locale === "vi" ? "Đã bật tiếng" : "Sound on")}
         </button>
       )}
       <div className="video-label">
         <span>{label}</span>
-        <small>{playing ? (source.provider === "instagram" ? "Chạm để phát" : "Đang phát") : "Bấm để xem"}</small>
+        <small>{playing ? (source.provider === "instagram" ? (locale === "vi" ? "Chạm để phát" : "Tap to play") : (locale === "vi" ? "Đang phát" : "Now playing")) : (locale === "vi" ? "Bấm để xem" : "Click to watch")}</small>
       </div>
     </div>
   );

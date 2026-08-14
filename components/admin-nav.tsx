@@ -14,7 +14,7 @@ export function AdminNav() {
   const pathname = usePathname();
 
   return (
-    <nav aria-label="Điều hướng quản trị">
+    <nav aria-label="Admin navigation">
       {items.map((item) => {
         const active =
           item.href === "/admin"
