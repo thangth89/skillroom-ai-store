@@ -11,6 +11,7 @@ type DeliveryOrder = {
   order_code: string;
   customer_email: string;
   status: string;
+  currency: string;
 };
 
 type DeliveryItem = {
@@ -65,8 +66,11 @@ function escapeHtml(value: string) {
     .replaceAll("'", "&#039;");
 }
 
-function emailSubject(skillName: string, deliveryType: "paid" | "free") {
-  return `${deliveryType === "free" ? "Your free Skill" : "Your Skill is ready"} - ${skillName}`.replace(/[\r\n]+/g, " ");
+function emailSubject(skillName: string, deliveryType: "paid" | "free", locale: "vi" | "en") {
+  const title = locale === "vi"
+    ? deliveryType === "free" ? "Skill miễn phí của bạn" : "Skill của bạn đã sẵn sàng"
+    : deliveryType === "free" ? "Your free Skill" : "Your Skill is ready";
+  return `${title} - ${skillName}`.replace(/[\r\n]+/g, " ");
 }
 
 function emailHtml(input: {
@@ -75,28 +79,42 @@ function emailHtml(input: {
   version: string;
   downloadUrl: string;
   deliveryType: "paid" | "free";
+  locale: "vi" | "en";
 }) {
   const orderCode = escapeHtml(input.orderCode);
   const skillName = escapeHtml(input.skillName);
   const version = escapeHtml(input.version);
   const downloadUrl = escapeHtml(input.downloadUrl);
 
+  const vi = input.locale === "vi";
+  const heading = vi ? "Skill của bạn đã sẵn sàng." : "Your Skill is ready.";
+  const confirmed = vi
+    ? `${input.deliveryType === "free" ? "Yêu cầu nhận Skill miễn phí" : "Thanh toán"} đã được xác nhận với mã <strong style="color:#fff">${orderCode}</strong>.`
+    : `${input.deliveryType === "free" ? "Your free Skill request" : "Your payment"} has been confirmed under reference <strong style="color:#fff">${orderCode}</strong>.`;
+  const button = vi ? "Tải Skill" : "Download your Skill";
+  const privateNote = vi
+    ? "Liên kết riêng tư này có hiệu lực 7 ngày và tối đa 5 lượt tải. Vui lòng không chia sẻ liên kết."
+    : "This private link is valid for 7 days and up to 5 downloads. Please do not share it.";
+  const fallback = vi
+    ? "Nếu nút không hoạt động, hãy sao chép địa chỉ này vào trình duyệt:"
+    : "If the button does not work, copy this address into your browser:";
+
   return `<!doctype html>
-<html lang="en">
+<html lang="${input.locale}">
   <body style="margin:0;background:#f2f0e8;color:#11140f;font-family:Arial,sans-serif">
     <div style="max-width:620px;margin:0 auto;padding:40px 20px">
       <div style="background:#11140f;color:#fff;border-radius:24px;padding:36px">
         <div style="color:#b8ff6a;font-size:13px;font-weight:700;letter-spacing:.12em">SKILLROOM</div>
-        <h1 style="margin:18px 0 12px;font-size:32px;line-height:1.15">Your Skill is ready.</h1>
-        <p style="margin:0;color:#c8ccc4;line-height:1.7">${input.deliveryType === "free" ? "Your free Skill request" : "Your payment"} has been confirmed under reference <strong style="color:#fff">${orderCode}</strong>.</p>
+        <h1 style="margin:18px 0 12px;font-size:32px;line-height:1.15">${heading}</h1>
+        <p style="margin:0;color:#c8ccc4;line-height:1.7">${confirmed}</p>
         <div style="margin:28px 0;padding:20px;border:1px solid #343a31;border-radius:16px">
           <div style="font-size:20px;font-weight:700">${skillName}</div>
-          <div style="margin-top:6px;color:#9ca298;font-size:13px">Version ${version}</div>
+          <div style="margin-top:6px;color:#9ca298;font-size:13px">${vi ? "Phiên bản" : "Version"} ${version}</div>
         </div>
-        <a href="${downloadUrl}" style="display:inline-block;background:#b8ff6a;color:#11140f;padding:15px 22px;border-radius:999px;text-decoration:none;font-weight:700">Download your Skill</a>
-        <p style="margin:24px 0 0;color:#9ca298;font-size:13px;line-height:1.7">This private link is valid for 7 days and up to 5 downloads. Please do not share it.</p>
+        <a href="${downloadUrl}" style="display:inline-block;background:#b8ff6a;color:#11140f;padding:15px 22px;border-radius:999px;text-decoration:none;font-weight:700">${button}</a>
+        <p style="margin:24px 0 0;color:#9ca298;font-size:13px;line-height:1.7">${privateNote}</p>
       </div>
-      <p style="margin:18px 8px 0;color:#747970;font-size:12px;line-height:1.6">If the button does not work, copy this address into your browser:<br><a href="${downloadUrl}" style="color:#384532;word-break:break-all">${downloadUrl}</a></p>
+      <p style="margin:18px 8px 0;color:#747970;font-size:12px;line-height:1.6">${fallback}<br><a href="${downloadUrl}" style="color:#384532;word-break:break-all">${downloadUrl}</a></p>
     </div>
   </body>
 </html>`;
@@ -108,7 +126,21 @@ function emailText(input: {
   version: string;
   downloadUrl: string;
   deliveryType: "paid" | "free";
+  locale: "vi" | "en";
 }) {
+  if (input.locale === "vi") {
+    return [
+      "Skillroom - Skill của bạn đã sẵn sàng.",
+      "",
+      `Mã tham chiếu: ${input.orderCode}`,
+      `Skill: ${input.skillName}`,
+      `Phiên bản: ${input.version}`,
+      "",
+      `Tải Skill: ${input.downloadUrl}`,
+      "",
+      "Liên kết riêng tư có hiệu lực 7 ngày và tối đa 5 lượt tải. Vui lòng không chia sẻ liên kết.",
+    ].join("\n");
+  }
   return [
     "Skillroom - Your Skill is ready.",
     "",
@@ -133,7 +165,7 @@ export async function sendOrderDeliveryEmail(input: {
   const supabase = createAdminClient();
   const { data: order, error: orderError } = await supabase
     .from("orders")
-    .select("id, order_code, customer_email, status")
+    .select("id, order_code, customer_email, status, currency")
     .eq("id", input.orderId)
     .maybeSingle<DeliveryOrder>();
 
@@ -169,17 +201,19 @@ export async function sendOrderDeliveryEmail(input: {
   const downloadUrl = new URL(`/download/${token}`, parsedOrigin.origin).toString();
   const replyTo = process.env.EMAIL_REPLY_TO?.trim();
   const deliveryType = input.deliveryType ?? "paid";
+  const locale = order.currency.toUpperCase() === "VND" ? "vi" : "en";
   const resend = new Resend(process.env.RESEND_API_KEY!);
   const payload = {
     from: process.env.EMAIL_FROM!,
     to: order.customer_email,
-    subject: emailSubject(item.skill_name, deliveryType),
+    subject: emailSubject(item.skill_name, deliveryType, locale),
     html: emailHtml({
       orderCode: order.order_code,
       skillName: item.skill_name,
       version: item.version,
       downloadUrl,
       deliveryType,
+      locale,
     }),
     text: emailText({
       orderCode: order.order_code,
@@ -187,6 +221,7 @@ export async function sendOrderDeliveryEmail(input: {
       version: item.version,
       downloadUrl,
       deliveryType,
+      locale,
     }),
     ...(replyTo ? { replyTo } : {}),
     tags: [{ name: "order", value: order.order_code }],

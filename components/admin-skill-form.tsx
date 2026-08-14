@@ -112,7 +112,7 @@ export function AdminSkillForm({ skill }: { skill?: SkillRecord }) {
                 />
                 <span>
                   <strong>Paid Skill</strong>
-                  <small>Customer pays through Lemon Squeezy using an available card, PayPal or wallet.</small>
+                  <small>The Vietnamese store uses payOS. The international store uses the approved provider configured on Vercel.</small>
                 </span>
               </label>
             </div>
@@ -142,17 +142,17 @@ export function AdminSkillForm({ skill }: { skill?: SkillRecord }) {
                   step="0.01"
                   type="number"
                 />
-                <small>Enter the price you set for the matching Lemon Squeezy product.</small>
+                <small>This is an independent international price, not an automatic VND conversion.</small>
               </label>
               <label className="wide-field">
-                <span>Lemon Squeezy Checkout URL *</span>
+                <span>International Checkout URL</span>
                 <input
                   defaultValue={skill?.lemon_checkout_url ?? ""}
                   name="lemon_checkout_url"
-                  placeholder="https://your-store.lemonsqueezy.com/checkout/buy/..."
+                  placeholder="https://checkout.your-provider.com/..."
                   type="url"
                 />
-                <small>Use the unique Checkout URL for this Skill. It is required before publishing a paid Skill.</small>
+                <small>Optional until a new provider is approved. Checkout stays disabled unless INTERNATIONAL_CHECKOUT_ENABLED=true.</small>
               </label>
             </>
           )}

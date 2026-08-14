@@ -90,20 +90,22 @@ function parseSkill(formData: FormData):
   const usdPriceText = getText(formData, "price_usd");
   const saleType = getText(formData, "sale_type");
   const isFree = saleType === "free";
-  const lemonCheckoutValue = getText(formData, "lemon_checkout_url");
+  // Giữ tên cột cũ để không cần migration, nhưng dùng nó làm URL checkout
+  // chung cho bất kỳ nhà cung cấp quốc tế nào được duyệt sau này.
+  const internationalCheckoutValue = getText(formData, "lemon_checkout_url");
   const usdPrice = usdPriceText === "" ? null : Number(usdPriceText);
   const priceUsdCents = isFree ? 0 : usdPrice === null ? null : Math.round(usdPrice * 100);
 
-  let lemonCheckoutUrl: string | null = null;
-  if (lemonCheckoutValue && !isFree) {
+  let internationalCheckoutUrl: string | null = null;
+  if (internationalCheckoutValue && !isFree) {
     try {
-      const parsedUrl = new URL(lemonCheckoutValue);
-      if (parsedUrl.protocol !== "https:" || !parsedUrl.pathname.startsWith("/checkout/buy/")) {
+      const parsedUrl = new URL(internationalCheckoutValue);
+      if (parsedUrl.protocol !== "https:") {
         throw new Error("invalid checkout URL");
       }
-      lemonCheckoutUrl = `${parsedUrl.origin}${parsedUrl.pathname}`;
+      internationalCheckoutUrl = parsedUrl.toString();
     } catch {
-      return { data: null, error: "The Lemon Squeezy Checkout URL is invalid." };
+      return { data: null, error: "The international Checkout URL must be a valid HTTPS address." };
     }
   }
 
@@ -156,10 +158,6 @@ function parseSkill(formData: FormData):
     return { data: null, error: "Enter a USD price greater than $0 for this paid international Skill." };
   }
 
-  if (nameEn && statusValue === "published" && !isFree && !lemonCheckoutUrl) {
-    return { data: null, error: "Add the Lemon Squeezy Checkout URL before publishing this paid Skill." };
-  }
-
   let videoUrl: string | null = null;
   if (videoValue) {
     try {
@@ -203,7 +201,7 @@ function parseSkill(formData: FormData):
       category_en: categoryEn,
       price_usd_cents: priceUsdCents,
       is_free: isFree,
-      lemon_checkout_url: lemonCheckoutUrl,
+      lemon_checkout_url: internationalCheckoutUrl,
       deliverables_en: getList(formData, "deliverables_en"),
       outcomes_en: getList(formData, "outcomes_en"),
       requirements_en: getList(formData, "requirements_en"),

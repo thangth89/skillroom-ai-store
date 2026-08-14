@@ -4,7 +4,8 @@ const aquascape = {
   videoSrc: "/demo/aquascape.mp4",
   accent: "#9cf26d",
   accentSoft: "#19351e",
-  lemonCheckoutUrl: null,
+  priceVnd: 249000,
+  internationalCheckoutUrl: null,
   requirements: [
     "ChatGPT Work or Codex with Skill support",
     "A tank photo or a clear layout brief",
@@ -16,7 +17,8 @@ const automotive = {
   videoSrc: "/demo/automotive.mp4",
   accent: "#ff8a65",
   accentSoft: "#41231d",
-  lemonCheckoutUrl: null,
+  priceVnd: 299000,
+  internationalCheckoutUrl: null,
   requirements: [
     "A compatible AI video generator",
     "A clear vehicle reference image",
@@ -28,7 +30,8 @@ const product = {
   videoSrc: "/demo/product.mp4",
   accent: "#8bb8ff",
   accentSoft: "#182a44",
-  lemonCheckoutUrl: null,
+  priceVnd: 199000,
+  internationalCheckoutUrl: null,
   requirements: [
     "A clean product reference image",
     "A compatible AI video generator",
@@ -46,7 +49,7 @@ export const skills: SkillProduct[] = [
     description: "A production-ready Skill for directing the full setup sequence—from substrate and hardscape to planting and fish release. Every scene locks object state, scale and water logic to reduce visual errors between generations.",
     priceUsdCents: 100,
     isFree: false,
-    lemonCheckoutUrl: "https://skillroom-ai.lemonsqueezy.com/checkout/buy/c61ecb2e-44ec-45d0-a5ab-adf6d39185a3",
+    internationalCheckoutUrl: null,
     category: "Aquascape",
     version: "V2.2",
     featured: true,

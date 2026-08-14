@@ -4,10 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const items = [
-  { href: "/admin", label: "Overview" },
-  { href: "/admin/skills", label: "Skills" },
-  { href: "/admin/orders", label: "Orders" },
-  { href: "/admin/settings", label: "Settings" },
+  { href: "/admin", label: "Tổng quan" },
+  { href: "/admin/skills", label: "Sản phẩm" },
+  { href: "/admin/orders", label: "Đơn hàng" },
+  { href: "/admin/settings", label: "Cài đặt" },
 ];
 
 export function AdminNav() {

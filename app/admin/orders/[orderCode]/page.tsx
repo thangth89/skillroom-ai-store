@@ -62,7 +62,7 @@ export default async function AdminOrderDetailPage({
   const [{ orderCode }, query] = await Promise.all([params, searchParams]);
   const details = await getAdminOrderDetails(orderCode);
 
-  if (!details.order || details.order.currency.toUpperCase() === "VND") notFound();
+  if (!details.order) notFound();
 
   const { order, items, payments, tokens, error } = details;
   const emailReady = hasEmailDeliveryConfig();
@@ -71,7 +71,8 @@ export default async function AdminOrderDetailPage({
   const amountMismatch = payments.some((payment) =>
     payment.status.toUpperCase().includes("MISMATCH"),
   );
-  const isLemonSqueezyOrder = payments.some((payment) => payment.provider === "lemonsqueezy");
+  const deliveryManagedBySite = items.some((item) => Boolean(item.file_path));
+  const paymentProvider = payments[0]?.provider || (order.currency === "VND" ? "payOS" : "Chưa ghi nhận");
   const totalDownloads = tokens.reduce((sum, token) => sum + token.download_count, 0);
   const lastDownload = tokens
     .map((token) => token.used_at)
@@ -101,10 +102,10 @@ export default async function AdminOrderDetailPage({
               rel="noreferrer"
               target="_blank"
             >
-              View Lemon receipt ↗
+              Mở biên nhận ↗
             </a>
           ) : null}
-          {order.status === "paid" && !isLemonSqueezyOrder ? (
+          {order.status === "paid" && deliveryManagedBySite ? (
             <form action={resendOrderEmail}>
               <input name="order_id" type="hidden" value={order.id} />
               <input name="return_to" type="hidden" value={returnTo} />
@@ -222,7 +223,7 @@ export default async function AdminOrderDetailPage({
             </div>
             <div>
               <dt>Payment provider</dt>
-              <dd>{isLemonSqueezyOrder ? "Lemon Squeezy" : "External payment"}</dd>
+              <dd>{paymentProvider}</dd>
             </div>
             <div>
               <dt>Payment reference</dt>
@@ -237,7 +238,7 @@ export default async function AdminOrderDetailPage({
               </dd>
             </div>
           </dl>
-          {order.status === "paid" && !isLemonSqueezyOrder ? (
+          {order.status === "paid" && deliveryManagedBySite ? (
             <form action={updateOrderEmailAndResend} className="order-email-correction">
               <input name="order_id" type="hidden" value={order.id} />
               <input name="return_to" type="hidden" value={returnTo} />
@@ -288,7 +289,7 @@ export default async function AdminOrderDetailPage({
                     </div>
                     <div>
                       <dt>Delivery file</dt>
-                      <dd className="break-value">{item.file_path ?? "Managed by Lemon Squeezy"}</dd>
+                      <dd className="break-value">{item.file_path ?? "Do nhà cung cấp thanh toán quản lý"}</dd>
                     </div>
                   </dl>
                   {item.skill_id ? (
@@ -343,8 +344,8 @@ export default async function AdminOrderDetailPage({
             </div>
           </div>
           <p className="order-detail-note">
-            Skillroom download links appear here when delivery is handled by this website.
-            Lemon Squeezy-hosted downloads remain available in the Lemon Squeezy order record.
+            Liên kết tải Skillroom xuất hiện tại đây khi website trực tiếp bàn giao file.
+            Nếu nhà cung cấp thanh toán quản lý file, hãy kiểm tra biên nhận của nhà cung cấp.
           </p>
           {tokens.length === 0 ? (
             <div className="order-detail-empty">No Skillroom download link has been created.</div>
