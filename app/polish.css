@@ -226,10 +226,13 @@ h1, h2, h3, p { text-wrap: pretty; }
   line-height: 1.15;
 }
 .section-heading > p { width: min(420px, 40vw); margin: 0; color: var(--muted); font-size: 14px; line-height: 1.7; }
-.skill-grid { gap: 20px; }
+.skill-grid { align-items: stretch; grid-auto-rows: 1fr; gap: 20px; }
 .skill-grid:has(> :only-child) { grid-template-columns: minmax(320px, 390px); }
 .skill-grid:has(> :nth-child(2):last-child) { max-width: 800px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .skill-card {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
   overflow: hidden;
   border: 1px solid var(--line);
   border-radius: 18px;
@@ -266,13 +269,24 @@ h1, h2, h3, p { text-wrap: pretty; }
 .video-frame[data-active="true"] .video-vignette,
 .video-frame[data-active="true"] .video-badge,
 .video-frame[data-active="true"] .video-label { opacity: 0; pointer-events: none; }
-.skill-card-body { padding: 22px; }
+.skill-card-body { display: flex; flex: 1; flex-direction: column; padding: 22px; }
 .card-meta { gap: 7px; }
 .card-meta span { border: 1px solid #d3ddd5; background: #f5f8f5; padding: 5px 8px; color: #53645a; font-family: var(--font-sans); font-size: 9px; font-weight: 750; }
 .skill-card h2 { margin: 16px 0 8px; color: var(--ink); font-size: 21px; font-weight: 750; letter-spacing: -.03em; line-height: 1.25; }
 .skill-card h2 a:hover { color: var(--brand); }
-.skill-card-body > p { min-height: 0; margin: 0; color: var(--muted); font-size: 13px; line-height: 1.65; }
-.card-bottom { margin-top: 20px; border-top: 1px solid var(--line); padding-top: 17px; }
+.skill-card-body > p {
+  display: -webkit-box;
+  min-height: calc(4 * 1.65em);
+  overflow: hidden;
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.65;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+}
+.card-bottom { position: relative; margin-top: auto; border-top: 0; padding-top: 37px; }
+.card-bottom::before { content: ""; position: absolute; top: 20px; right: 0; left: 0; border-top: 1px solid var(--line); }
 .card-bottom strong { color: var(--ink); font-size: 16px; font-weight: 800; }
 .card-bottom strong.free-price,
 .detail-buy-row strong.free-price { color: var(--success); }
@@ -580,8 +594,9 @@ h1, h2, h3, p { text-wrap: pretty; }
   .proof-copy strong { font-size: 48px; }
   .catalog-section { padding-block: 58px; }
   .section-heading h2 { font-size: 31px; }
-  .skill-grid, .skill-grid:has(> :nth-child(2):last-child) { max-width: none; grid-template-columns: 1fr; }
+  .skill-grid, .skill-grid:has(> :nth-child(2):last-child) { max-width: none; grid-auto-rows: auto; grid-template-columns: 1fr; }
   .skill-card-body { padding: 19px; }
+  .skill-card-body > p { min-height: 0; }
   .catalog-more { align-items: flex-start; flex-direction: column; gap: 20px; }
   .catalog-more .secondary-button { width: 100%; }
   .process { padding-block: 60px 70px; }
