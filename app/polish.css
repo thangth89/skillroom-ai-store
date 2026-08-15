@@ -290,6 +290,18 @@ h1, h2, h3, p { text-wrap: pretty; }
 .card-bottom strong { color: var(--ink); font-size: 16px; font-weight: 800; }
 .card-bottom strong.free-price,
 .detail-buy-row strong.free-price { color: var(--success); }
+.store-price { display: inline-flex; min-width: 0; align-items: baseline; flex-wrap: wrap; gap: 5px 8px; }
+.store-price del { color: var(--muted-light); font-size: 11px; font-weight: 620; }
+.store-price .discount-badge { border-radius: 999px; background: #fde7e1; padding: 4px 7px; color: #a23d28; font-size: 9px; font-weight: 800; line-height: 1; }
+.store-price.card { flex: 1; }
+.store-price.card strong { white-space: nowrap; }
+.store-price.detail { gap: 7px 10px; }
+.store-price.detail strong { color: var(--brand-dark); font-size: 28px; }
+.store-price.detail del { font-size: 15px; }
+.store-price.detail .discount-badge { font-size: 10px; }
+.store-price.summary { max-width: 60%; justify-content: flex-end; text-align: right; }
+.store-price.summary del { color: #8f9c93; }
+.store-price.summary .discount-badge { background: rgba(154,246,93,.13); color: var(--lime); }
 .text-link { color: var(--brand); font-size: 12px; font-weight: 750; }
 .text-link:hover { color: var(--brand-dark); }
 .catalog-more { margin-top: 36px; border-top: 1px solid #ccd8ce; padding-top: 24px; }
@@ -506,6 +518,8 @@ h1, h2, h3, p { text-wrap: pretty; }
 .admin-form-grid select,
 .admin-form-grid textarea { border-color: #bdc9c0; border-radius: 10px; padding: 12px 13px; font-size: 13px; }
 .admin-form-grid input:not([type="checkbox"]), .admin-form-grid select { min-height: 48px; }
+.admin-form-grid .discount-field input { border-color: #d8b6aa; background: #fff9f7; }
+.admin-form-grid .discount-field > span::after { margin-left: 6px; border-radius: 999px; background: #fde7e1; padding: 3px 6px; color: #a23d28; content: "SALE"; font-size: 8px; letter-spacing: .06em; }
 .admin-form-actions { border-color: var(--line); border-radius: 14px; background: rgba(255,255,255,.94); }
 .order-detail-toolbar { margin-bottom: 15px; }
 .order-detail-actions { gap: 8px; }

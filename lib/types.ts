@@ -8,6 +8,7 @@ export type SkillProduct = {
   description: string;
   priceVnd: number;
   priceUsdCents: number | null;
+  discountPercent: number;
   isFree: boolean;
   internationalCheckoutUrl: string | null;
   category: SkillCategory;

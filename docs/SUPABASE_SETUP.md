@@ -18,8 +18,9 @@ Phần đăng nhập quản trị đã có sẵn trong mã nguồn. Hãy hoàn t
 ## 3. Tạo bảng dữ liệu
 
 1. Mở **SQL Editor** trong Supabase.
-2. Sao chép và chạy toàn bộ file `supabase/migrations/202608060001_initial.sql`.
-3. Migration bật Row Level Security và không cấp quyền đọc/ghi trực tiếp cho khách truy cập.
+2. Sao chép và chạy các file trong `supabase/migrations` theo thứ tự tên file. Với website đã có dữ liệu, chỉ cần chạy những migration mới chưa từng chạy.
+3. Migration giảm giá hiện tại là `202608150001_skill_discounts.sql`; file này thêm phần trăm giảm riêng cho thị trường Việt Nam và quốc tế mà không thay đổi giá gốc.
+4. Các migration bật Row Level Security và không cấp quyền đọc/ghi trực tiếp cho khách truy cập.
 
 ## 4. Thêm biến môi trường trên Vercel
 

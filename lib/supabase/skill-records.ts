@@ -12,6 +12,7 @@ export type SkillRecord = {
   short_description: string;
   description: string;
   price: number;
+  discount_percent_vn?: number;
   category: string;
   version: string;
   status: SkillStatus;
@@ -30,6 +31,7 @@ export type SkillRecord = {
   description_en?: string | null;
   category_en?: string | null;
   price_usd_cents?: number | null;
+  discount_percent_international?: number;
   is_free?: boolean;
   lemon_checkout_url?: string | null;
   deliverables_en?: string[];

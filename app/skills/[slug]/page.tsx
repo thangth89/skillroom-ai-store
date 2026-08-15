@@ -2,8 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import { StorePrice } from "@/components/store-price";
 import { VideoPreview } from "@/components/video-preview";
-import { formatUsdCents, formatVnd } from "@/lib/format";
 import { getCatalogSkill } from "@/lib/catalog";
 import { getStoreLocale } from "@/lib/locale";
 import { isInternationalCheckoutLive } from "@/lib/international-payments";
@@ -17,11 +17,6 @@ export default async function SkillDetailPage({ params }: { params: Promise<{ sl
 
   const vi = locale === "vi";
   const internationalLive = isInternationalCheckoutLive();
-  const price = skill.isFree
-    ? vi ? "Miễn phí" : "Free"
-    : vi
-      ? formatVnd(skill.priceVnd)
-      : skill.priceUsdCents === null ? "Coming soon" : formatUsdCents(skill.priceUsdCents);
   const checkoutAvailable = vi || skill.isFree || (internationalLive && skill.priceUsdCents !== null && skill.priceUsdCents > 0);
 
   return (
@@ -34,7 +29,7 @@ export default async function SkillDetailPage({ params }: { params: Promise<{ sl
           <p className="detail-eyebrow">{skill.eyebrow}</p>
           <p className="detail-description">{skill.description}</p>
           <div className="detail-buy-row">
-            <strong className={skill.isFree ? "free-price" : ""}>{price}</strong>
+            <StorePrice locale={locale} skill={skill} variant="detail" />
             {checkoutAvailable ? (
               <Link className="primary-button" href={`/checkout/${skill.slug}`}>
                 {vi ? (skill.isFree ? "Nhận Skill miễn phí" : "Mua Skill") : (skill.isFree ? "Get this Skill free" : "Continue to checkout")} <span>→</span>

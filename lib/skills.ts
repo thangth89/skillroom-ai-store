@@ -5,6 +5,7 @@ const aquascape = {
   accent: "#9cf26d",
   accentSoft: "#19351e",
   priceVnd: 249000,
+  discountPercent: 0,
   internationalCheckoutUrl: null,
   requirements: [
     "ChatGPT Work or Codex with Skill support",
@@ -18,6 +19,7 @@ const automotive = {
   accent: "#ff8a65",
   accentSoft: "#41231d",
   priceVnd: 299000,
+  discountPercent: 0,
   internationalCheckoutUrl: null,
   requirements: [
     "A compatible AI video generator",
@@ -31,6 +33,7 @@ const product = {
   accent: "#8bb8ff",
   accentSoft: "#182a44",
   priceVnd: 199000,
+  discountPercent: 0,
   internationalCheckoutUrl: null,
   requirements: [
     "A clean product reference image",

@@ -117,21 +117,37 @@ export function AdminSkillForm({ skill }: { skill?: SkillRecord }) {
               <strong>Free delivery is active in Vietnam</strong>
               <span>The Vietnamese storefront will display “Miễn phí” and deliver the file by email.</span>
               <input name="price" type="hidden" value="0" />
+              <input name="discount_percent_vn" type="hidden" value="0" />
             </div>
           ) : (
-            <label>
-              <span>Vietnam price (VND) *</span>
-              <input
-                defaultValue={skill?.price && skill.price > 0 ? skill.price : ""}
-                min={1000}
-                name="price"
-                placeholder="100000"
-                step={1000}
-                type="number"
-                required
-              />
-              <small>This price is independent from the international USD price.</small>
-            </label>
+            <>
+              <label>
+                <span>Vietnam original price (VND) *</span>
+                <input
+                  defaultValue={skill?.price && skill.price > 0 ? skill.price : ""}
+                  min={1000}
+                  name="price"
+                  placeholder="100000"
+                  step={1000}
+                  type="number"
+                  required
+                />
+                <small>The price before discount. It remains independent from the international USD price.</small>
+              </label>
+              <label className="discount-field">
+                <span>Vietnam discount (%)</span>
+                <input
+                  defaultValue={skill?.discount_percent_vn ?? 0}
+                  max={99}
+                  min={0}
+                  name="discount_percent_vn"
+                  placeholder="0"
+                  step={1}
+                  type="number"
+                />
+                <small>Enter 0 for no discount. The payOS amount will use the discounted price.</small>
+              </label>
+            </>
           )}
           <label className="wide-field">
             <span>Vietnamese eyebrow</span>
@@ -209,20 +225,36 @@ export function AdminSkillForm({ skill }: { skill?: SkillRecord }) {
             <div className="sale-type-summary wide-field free">
               <strong>Free delivery is active</strong>
               <span>The uploaded Skill file will be sent by email. The storefront price will display as Free.</span>
+              <input name="discount_percent_international" type="hidden" value="0" />
             </div>
           ) : (
-            <label>
-              <span>International price (USD) *</span>
-              <input
-                defaultValue={skill?.price_usd_cents == null ? "" : skill.price_usd_cents / 100}
-                min="0.01"
-                name="price_usd"
-                placeholder="9.00"
-                step="0.01"
-                type="number"
-              />
-              <small>PayPal uses this price automatically. No separate product or checkout URL is required.</small>
-            </label>
+            <>
+              <label>
+                <span>International original price (USD) *</span>
+                <input
+                  defaultValue={skill?.price_usd_cents == null ? "" : skill.price_usd_cents / 100}
+                  min="0.01"
+                  name="price_usd"
+                  placeholder="9.00"
+                  step="0.01"
+                  type="number"
+                />
+                <small>The price before discount. PayPal receives the discounted amount automatically.</small>
+              </label>
+              <label className="discount-field">
+                <span>International discount (%)</span>
+                <input
+                  defaultValue={skill?.discount_percent_international ?? 0}
+                  max={99}
+                  min={0}
+                  name="discount_percent_international"
+                  placeholder="0"
+                  step={1}
+                  type="number"
+                />
+                <small>Enter 0 for no discount. This setting is independent from the Vietnam discount.</small>
+              </label>
+            </>
           )}
           <label className="wide-field">
             <span>English eyebrow</span>
