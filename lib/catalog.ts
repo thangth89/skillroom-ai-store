@@ -35,6 +35,7 @@ type PublicSkillRow = {
   requirements_en: string[] | null;
   version: string;
   video_url: string;
+  tutorial_video_url?: string | null;
   accent: string | null;
   accent_soft: string | null;
   featured: boolean;
@@ -71,6 +72,15 @@ function isMissingDiscountFieldsError(error: { code?: string; message: string } 
   );
 }
 
+function isMissingTutorialVideoFieldError(error: { code?: string; message: string } | null) {
+  if (!error) return false;
+  const message = error.message.toLowerCase();
+  return (
+    (error.code === "42703" || error.code === "PGRST204") &&
+    message.includes("tutorial_video_url")
+  );
+}
+
 const basePublicSkillColumns = [
   "slug",
   "name",
@@ -101,6 +111,7 @@ const basePublicSkillColumns = [
 ];
 
 const discountColumns = ["discount_percent_vn", "discount_percent_international"];
+const tutorialVideoColumns = ["tutorial_video_url"];
 
 function mapSkill(row: PublicSkillRow, locale: StoreLocale): SkillProduct {
   const english = locale === "en";
@@ -125,6 +136,7 @@ function mapSkill(row: PublicSkillRow, locale: StoreLocale): SkillProduct {
     category: english ? row.category_en || row.category : row.category,
     version: row.version,
     videoSrc: row.video_url,
+    tutorialVideoSrc: row.tutorial_video_url ?? null,
     accent: row.accent || "#b8ff6a",
     accentSoft: row.accent_soft || "#19351e",
     featured: row.featured,
@@ -134,7 +146,11 @@ function mapSkill(row: PublicSkillRow, locale: StoreLocale): SkillProduct {
   };
 }
 
-function publishedSkillsQuery(locale: StoreLocale, includeDiscounts = true) {
+function publishedSkillsQuery(
+  locale: StoreLocale,
+  includeDiscounts = true,
+  includeTutorialVideo = true,
+) {
   // Supabase's fluent generic grows beyond TypeScript's instantiation limit when
   // optional locale filters are composed dynamically. The returned rows are still
   // checked with PublicSkillRow at the terminal query.
@@ -143,6 +159,7 @@ function publishedSkillsQuery(locale: StoreLocale, includeDiscounts = true) {
     .select([
       ...basePublicSkillColumns,
       ...(includeDiscounts ? discountColumns : []),
+      ...(includeTutorialVideo ? tutorialVideoColumns : []),
     ].join(","))
     .eq("status", "published")
     .not("video_url", "is", null)
@@ -153,10 +170,11 @@ function publishedSkillsQuery(locale: StoreLocale, includeDiscounts = true) {
 
 async function getPublishedSkillsRange(locale: StoreLocale, start: number, end: number) {
   let includeDiscounts = true;
+  let includeTutorialVideo = true;
   let useCustomOrder = true;
 
-  for (let attempt = 0; attempt < 3; attempt += 1) {
-    const query = publishedSkillsQuery(locale, includeDiscounts);
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    const query = publishedSkillsQuery(locale, includeDiscounts, includeTutorialVideo);
     const orderedQuery = useCustomOrder
       ? query.order("sort_order", { ascending: true }).order("created_at", { ascending: true })
       : query.order("featured", { ascending: false }).order("updated_at", { ascending: false });
@@ -167,6 +185,10 @@ async function getPublishedSkillsRange(locale: StoreLocale, start: number, end: 
 
     if (includeDiscounts && isMissingDiscountFieldsError(result.error)) {
       includeDiscounts = false;
+      continue;
+    }
+    if (includeTutorialVideo && isMissingTutorialVideoFieldError(result.error)) {
+      includeTutorialVideo = false;
       continue;
     }
     if (useCustomOrder && isMissingSortOrderError(result.error)) {
@@ -183,21 +205,36 @@ async function getPublishedSkillsRange(locale: StoreLocale, start: number, end: 
 }
 
 async function getPublishedSkill(locale: StoreLocale, slug: string) {
-  const result = await publishedSkillsQuery(locale)
-    .eq("slug", slug)
-    .maybeSingle() as {
-      data: PublicSkillRow | null;
-      error: { code?: string; message: string } | null;
-    };
+  let includeDiscounts = true;
+  let includeTutorialVideo = true;
 
-  if (!isMissingDiscountFieldsError(result.error)) return result;
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const result = await publishedSkillsQuery(
+      locale,
+      includeDiscounts,
+      includeTutorialVideo,
+    )
+      .eq("slug", slug)
+      .maybeSingle() as {
+        data: PublicSkillRow | null;
+        error: { code?: string; message: string } | null;
+      };
 
-  return publishedSkillsQuery(locale, false)
-    .eq("slug", slug)
-    .maybeSingle() as Promise<{
-      data: PublicSkillRow | null;
-      error: { code?: string; message: string } | null;
-    }>;
+    if (includeDiscounts && isMissingDiscountFieldsError(result.error)) {
+      includeDiscounts = false;
+      continue;
+    }
+    if (includeTutorialVideo && isMissingTutorialVideoFieldError(result.error)) {
+      includeTutorialVideo = false;
+      continue;
+    }
+    return result;
+  }
+
+  return {
+    data: null,
+    error: { message: "The Skill could not be loaded." },
+  };
 }
 
 async function countPublishedSkills(locale: StoreLocale) {

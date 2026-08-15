@@ -17,6 +17,7 @@ export type SkillRecord = {
   version: string;
   status: SkillStatus;
   video_url: string | null;
+  tutorial_video_url?: string | null;
   file_path: string | null;
   accent: string | null;
   accent_soft: string | null;

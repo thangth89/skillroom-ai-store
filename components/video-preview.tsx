@@ -13,9 +13,10 @@ type VideoPreviewProps = {
   className?: string;
   detail?: boolean;
   locale?: StoreLocale;
+  kind?: "result" | "tutorial";
 };
 
-export function VideoPreview({ id, src, label, accent, accentSoft, className = "", detail = false, locale = "en" }: VideoPreviewProps) {
+export function VideoPreview({ id, src, label, accent, accentSoft, className = "", detail = false, locale = "en", kind = "result" }: VideoPreviewProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [activated, setActivated] = useState(false);
@@ -23,6 +24,10 @@ export function VideoPreview({ id, src, label, accent, accentSoft, className = "
   const [muted, setMuted] = useState(true);
   const source = useMemo(() => parseVideoSource(src), [src]);
   const isFile = source.provider === "file";
+  const tutorial = kind === "tutorial";
+  const videoTypeLabel = tutorial
+    ? locale === "vi" ? "Video hướng dẫn" : "Tutorial video"
+    : source.providerLabel;
 
   const pause = (reset = false) => {
     if (!isFile) {
@@ -114,7 +119,9 @@ export function VideoPreview({ id, src, label, accent, accentSoft, className = "
           controls
           playsInline
           preload="none"
-          aria-label={locale === "vi" ? `Video kết quả của ${label}` : `Result video for ${label}`}
+          aria-label={tutorial
+            ? locale === "vi" ? `Video hướng dẫn của ${label}` : `Tutorial video for ${label}`
+            : locale === "vi" ? `Video kết quả của ${label}` : `Result video for ${label}`}
           onPlay={() => setPlaying(true)}
           onPause={() => setPlaying(false)}
           onEnded={() => setPlaying(false)}
@@ -134,10 +141,10 @@ export function VideoPreview({ id, src, label, accent, accentSoft, className = "
         />
       ) : null}
       <div className="video-vignette" />
-      <span className="video-badge">{source.providerLabel}</span>
+      <span className="video-badge">{isFile ? videoTypeLabel : source.providerLabel}</span>
       {!playing && (
-        <button className="play-button" type="button" onClick={() => void play()} aria-label={locale === "vi" ? `Phát video của ${label}` : `Play video for ${label}`}>
-          <span aria-hidden="true">▶</span><b>{locale === "vi" ? "Xem video" : "Watch video"}</b>
+        <button className="play-button" type="button" onClick={() => void play()} aria-label={tutorial ? (locale === "vi" ? `Phát video hướng dẫn của ${label}` : `Play tutorial video for ${label}`) : (locale === "vi" ? `Phát video của ${label}` : `Play video for ${label}`)}>
+          <span aria-hidden="true">▶</span><b>{tutorial ? (locale === "vi" ? "Xem hướng dẫn" : "Watch tutorial") : (locale === "vi" ? "Xem video" : "Watch video")}</b>
         </button>
       )}
       {playing && (isFile || source.provider === "youtube") && (

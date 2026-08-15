@@ -379,6 +379,22 @@ h1, h2, h3, p { text-wrap: pretty; }
   padding-inline: 18px;
 }
 .video-frame-detail .video-label span { font-size: 15px; }
+.detail-tutorial {
+  display: grid;
+  grid-template-columns: minmax(220px, .55fr) minmax(0, 1.45fr);
+  gap: 44px;
+  align-items: center;
+  margin-bottom: 64px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: #fff;
+  padding: 32px;
+  box-shadow: var(--shadow-sm);
+}
+.detail-tutorial-copy > span { color: var(--brand); font-size: 10px; font-weight: 800; letter-spacing: .12em; }
+.detail-tutorial-copy h2 { margin-top: 10px; font-size: 30px; font-weight: 760; letter-spacing: -.04em; line-height: 1.15; }
+.detail-tutorial-copy p { margin-top: 14px; color: var(--muted); font-size: 13px; line-height: 1.7; }
+.tutorial-video-frame { width: 100%; aspect-ratio: 16 / 9; }
 .detail-content { gap: 16px; border: 0; }
 .detail-content article,
 .detail-content article + article {
@@ -573,6 +589,7 @@ h1, h2, h3, p { text-wrap: pretty; }
   .detail-hero, .checkout-page { grid-template-columns: 1fr; }
   .detail-copy { max-width: 700px; }
   .video-frame-detail { width: 100%; }
+  .detail-tutorial { grid-template-columns: 1fr; gap: 24px; padding: 26px; }
   .detail-content { grid-template-columns: 1fr; }
   .detail-content article, .detail-content article + article { min-height: 0; padding: 26px; }
   .order-summary { position: static; width: min(100%, 560px); }
@@ -635,6 +652,9 @@ h1, h2, h3, p { text-wrap: pretty; }
   .detail-buy-row .primary-button { width: 100%; }
   .detail-copy > small { text-align: left; }
   .video-frame-detail { aspect-ratio: 4 / 3; border-radius: 17px; }
+  .detail-tutorial { margin-bottom: 46px; border-radius: 17px; padding: 22px; }
+  .detail-tutorial-copy h2 { font-size: 26px; }
+  .tutorial-video-frame { aspect-ratio: 16 / 9; }
   .detail-cta { align-items: flex-start; flex-direction: column; margin-block: 50px; padding: 28px 24px; }
   .detail-cta h2 { font-size: 27px; }
   .detail-cta .primary-button { width: 100%; }
