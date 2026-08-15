@@ -3,10 +3,12 @@ import { notFound } from "next/navigation";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { CheckoutForm } from "@/components/checkout-form";
+import { StorePrice } from "@/components/store-price";
 import { formatUsdCents, formatVnd } from "@/lib/format";
 import { getCatalogSkill } from "@/lib/catalog";
 import { getInternationalPaymentProvider, isInternationalCheckoutLive } from "@/lib/international-payments";
 import { getStoreLocale } from "@/lib/locale";
+import { getStorefrontPricing } from "@/lib/pricing";
 
 export const dynamic = "force-dynamic";
 
@@ -19,11 +21,14 @@ export default async function CheckoutPage({ params }: { params: Promise<{ slug:
   const internationalLive = isInternationalCheckoutLive();
   const providerName = getInternationalPaymentProvider();
   const paypalClientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID?.trim() || "";
+  const pricing = getStorefrontPricing(skill, locale);
   const price = skill.isFree
     ? (vi ? "Miễn phí" : "Free")
-    : vi
-      ? formatVnd(skill.priceVnd)
-      : skill.priceUsdCents === null ? "Coming soon" : formatUsdCents(skill.priceUsdCents);
+    : pricing.salePrice == null
+      ? (vi ? "Sắp ra mắt" : "Coming soon")
+      : vi
+        ? formatVnd(pricing.salePrice)
+        : formatUsdCents(pricing.salePrice);
 
   return (
     <><SiteHeader /><main className="checkout-page shell">
@@ -56,7 +61,7 @@ export default async function CheckoutPage({ params }: { params: Promise<{ slug:
       <aside className="order-summary">
         <span>{skill.isFree ? (vi ? "TẢI MIỄN PHÍ" : "FREE DOWNLOAD") : vi ? "TÓM TẮT ĐƠN HÀNG" : "ORDER SUMMARY"}</span>
         <div className="summary-preview" style={{ "--accent": skill.accent, "--accent-soft": skill.accentSoft } as React.CSSProperties}><small>{skill.category}</small><strong>{skill.name}</strong><em>{skill.version}</em></div>
-        <div className="summary-line"><span>{vi ? "Giá Skill" : "Skill price"}</span><strong>{price}</strong></div>
+        <div className="summary-line"><span>{vi ? "Giá Skill" : "Skill price"}</span><StorePrice locale={locale} skill={skill} variant="summary" /></div>
         <div className="summary-line"><span>{vi ? "Giao hàng" : "Delivery"}</span><strong>{vi ? "Miễn phí" : "Free"}</strong></div>
         <div className="summary-total"><span>{skill.isFree ? (vi ? "Cần thanh toán" : "Amount due") : vi ? "Tổng thanh toán" : "Checkout total"}</span><strong>{skill.isFree ? (vi ? "0 ₫" : "$0") : price}</strong></div>
         <p>{vi ? "Sản phẩm số. Không giao hàng vật lý." : "Digital product. No physical shipment."}</p>

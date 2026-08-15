@@ -1,4 +1,5 @@
 import { createPayPalOrder, hasPayPalConfig } from "@/lib/paypal";
+import { applyPercentageDiscount } from "@/lib/pricing";
 import { createAdminClient, hasAdminDataConfig } from "@/lib/supabase/admin";
 
 type PaidInternationalSkill = {
@@ -9,11 +10,19 @@ type PaidInternationalSkill = {
   version: string;
   file_path: string;
   price_usd_cents: number;
+  discount_percent_international?: number;
   is_free: boolean;
 };
 
 function validEmail(value: unknown): value is string {
   return typeof value === "string" && value.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+function missingDiscountColumn(error: { code?: string; message?: string } | null) {
+  return (
+    (error?.code === "PGRST204" || error?.code === "42703") &&
+    error?.message?.toLowerCase().includes("discount_percent_international") === true
+  );
 }
 
 export async function POST(request: Request) {
@@ -35,9 +44,9 @@ export async function POST(request: Request) {
   }
 
   const supabase = createAdminClient();
-  const { data: skill, error: skillError } = await supabase
+  let { data: skill, error: skillError } = await supabase
     .from("skills")
-    .select("id, slug, name, name_en, version, file_path, price_usd_cents, is_free")
+    .select("id, slug, name, name_en, version, file_path, price_usd_cents, discount_percent_international, is_free")
     .eq("slug", slug)
     .eq("status", "published")
     .eq("is_free", false)
@@ -45,9 +54,29 @@ export async function POST(request: Request) {
     .not("file_path", "is", null)
     .maybeSingle<PaidInternationalSkill>();
 
+  // Keep existing PayPal checkouts available until the discount migration is applied.
+  if (missingDiscountColumn(skillError)) {
+    const fallback = await supabase
+      .from("skills")
+      .select("id, slug, name, name_en, version, file_path, price_usd_cents, is_free")
+      .eq("slug", slug)
+      .eq("status", "published")
+      .eq("is_free", false)
+      .not("name_en", "is", null)
+      .not("file_path", "is", null)
+      .maybeSingle<PaidInternationalSkill>();
+    skill = fallback.data;
+    skillError = fallback.error;
+  }
+
   if (skillError || !skill?.file_path || !skill.name_en?.trim() || skill.price_usd_cents <= 0) {
     return Response.json({ error: "This Skill is not available for international purchase." }, { status: 404 });
   }
+
+  const checkoutPrice = applyPercentageDiscount(
+    skill.price_usd_cents,
+    skill.discount_percent_international,
+  );
 
   const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
   const { count } = await supabase
@@ -69,8 +98,8 @@ export async function POST(request: Request) {
       customer_email: email,
       status: "pending",
       currency: "USD",
-      subtotal: skill.price_usd_cents,
-      total: skill.price_usd_cents,
+      subtotal: checkoutPrice,
+      total: checkoutPrice,
     })
     .select("id")
     .single<{ id: string }>();
@@ -86,7 +115,7 @@ export async function POST(request: Request) {
     skill_slug: skill.slug,
     version: skill.version,
     file_path: skill.file_path,
-    unit_price: skill.price_usd_cents,
+    unit_price: checkoutPrice,
     quantity: 1,
   });
   if (itemError) {
@@ -99,7 +128,7 @@ export async function POST(request: Request) {
       localOrderId: order.id,
       orderCode,
       skillName: skill.name_en.trim(),
-      amountCents: skill.price_usd_cents,
+      amountCents: checkoutPrice,
     });
     if (!paypalOrder.id) throw new Error("PayPal did not return an order ID.");
 
@@ -107,7 +136,7 @@ export async function POST(request: Request) {
       order_id: order.id,
       provider: "paypal",
       provider_reference: paypalOrder.id,
-      amount: skill.price_usd_cents,
+      amount: checkoutPrice,
       status: paypalOrder.status || "CREATED",
       webhook_payload: paypalOrder,
     });

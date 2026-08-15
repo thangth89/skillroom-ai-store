@@ -33,6 +33,7 @@ type ParsedSkill = {
   short_description: string;
   description: string;
   price: number;
+  discount_percent_vn: number;
   category: string;
   version: string;
   status: SkillStatus;
@@ -49,6 +50,7 @@ type ParsedSkill = {
   description_en: string;
   category_en: string;
   price_usd_cents: number | null;
+  discount_percent_international: number;
   is_free: boolean;
   lemon_checkout_url: string | null;
   deliverables_en: string[];
@@ -86,6 +88,9 @@ function parseSkill(formData: FormData):
   const vietnamSaleType = getText(formData, "sale_type_vn");
   const parsedVndPrice = priceText === "" ? null : Number(priceText);
   const price = vietnamSaleType === "free" ? 0 : parsedVndPrice;
+  const discountVnText = getText(formData, "discount_percent_vn");
+  const parsedDiscountVn = discountVnText === "" ? 0 : Number(discountVnText);
+  const discountPercentVn = vietnamSaleType === "free" ? 0 : parsedDiscountVn;
   const statusValue = getText(formData, "status") as SkillStatus;
   const videoValue = getText(formData, "video_url");
   const accent = getText(formData, "accent") || "#b8ff6a";
@@ -100,6 +105,11 @@ function parseSkill(formData: FormData):
   const isFree = internationalSaleType === "free";
   const usdPrice = usdPriceText === "" ? null : Number(usdPriceText);
   const priceUsdCents = isFree ? 0 : usdPrice === null ? null : Math.round(usdPrice * 100);
+  const discountInternationalText = getText(formData, "discount_percent_international");
+  const parsedDiscountInternational = discountInternationalText === ""
+    ? 0
+    : Number(discountInternationalText);
+  const discountPercentInternational = isFree ? 0 : parsedDiscountInternational;
 
   if (usdPriceText && (!Number.isFinite(usdPrice) || usdPrice! < 0 || usdPrice! > 1000000)) {
     return { data: null, error: "The USD price must be between 0 and 1,000,000." };
@@ -135,6 +145,10 @@ function parseSkill(formData: FormData):
     return { data: null, error: "Enter a VND price greater than 0 for a paid Vietnamese Skill." };
   }
 
+  if (!Number.isInteger(discountPercentVn) || discountPercentVn < 0 || discountPercentVn > 99) {
+    return { data: null, error: "The Vietnam discount must be a whole percentage from 0 to 99." };
+  }
+
   if (!statuses.has(statusValue)) {
     return { data: null, error: "The selected Skill status is invalid." };
   }
@@ -156,6 +170,14 @@ function parseSkill(formData: FormData):
 
   if (nameEn && !isFree && (priceUsdCents === null || !Number.isSafeInteger(priceUsdCents) || priceUsdCents <= 0)) {
     return { data: null, error: "Enter a USD price greater than $0 for this paid international Skill." };
+  }
+
+  if (
+    !Number.isInteger(discountPercentInternational) ||
+    discountPercentInternational < 0 ||
+    discountPercentInternational > 99
+  ) {
+    return { data: null, error: "The international discount must be a whole percentage from 0 to 99." };
   }
 
   let videoUrl: string | null = null;
@@ -184,6 +206,7 @@ function parseSkill(formData: FormData):
       short_description: shortDescription,
       description,
       price,
+      discount_percent_vn: discountPercentVn,
       category,
       version,
       status: statusValue,
@@ -200,6 +223,7 @@ function parseSkill(formData: FormData):
       description_en: descriptionEn,
       category_en: categoryEn,
       price_usd_cents: priceUsdCents,
+      discount_percent_international: discountPercentInternational,
       is_free: isFree,
       // Legacy database column retained for backwards compatibility; PayPal creates orders dynamically.
       lemon_checkout_url: null,
@@ -255,6 +279,12 @@ async function uploadSkillFile(slug: string, file: File) {
 }
 
 function dataErrorMessage(message: string, code?: string) {
+  if (
+    message.toLowerCase().includes("discount_percent_vn") ||
+    message.toLowerCase().includes("discount_percent_international")
+  ) {
+    return "Discounts are not enabled in Supabase yet. Run migration 202608150001_skill_discounts.sql, then save again.";
+  }
   if (code === "23505" || message.toLowerCase().includes("duplicate")) {
     return "This slug is already used by another Skill.";
   }

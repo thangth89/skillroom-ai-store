@@ -16,6 +16,7 @@ type PublicSkillRow = {
   short_description: string;
   description: string;
   price: number;
+  discount_percent_vn?: number;
   category: string;
   deliverables: string[];
   outcomes: string[];
@@ -25,6 +26,7 @@ type PublicSkillRow = {
   short_description_en: string | null;
   description_en: string | null;
   price_usd_cents: number | null;
+  discount_percent_international?: number;
   is_free: boolean | null;
   lemon_checkout_url: string | null;
   category_en: string | null;
@@ -60,7 +62,16 @@ function isMissingSortOrderError(error: { code?: string; message: string } | nul
   );
 }
 
-const publicSkillColumns = [
+function isMissingDiscountFieldsError(error: { code?: string; message: string } | null) {
+  if (!error) return false;
+  const message = error.message.toLowerCase();
+  return (
+    (error.code === "42703" || error.code === "PGRST204") &&
+    (message.includes("discount_percent_vn") || message.includes("discount_percent_international"))
+  );
+}
+
+const basePublicSkillColumns = [
   "slug",
   "name",
   "eyebrow",
@@ -87,7 +98,9 @@ const publicSkillColumns = [
   "accent",
   "accent_soft",
   "featured",
-].join(",");
+];
+
+const discountColumns = ["discount_percent_vn", "discount_percent_international"];
 
 function mapSkill(row: PublicSkillRow, locale: StoreLocale): SkillProduct {
   const english = locale === "en";
@@ -101,6 +114,9 @@ function mapSkill(row: PublicSkillRow, locale: StoreLocale): SkillProduct {
     description: english ? row.description_en || row.description : row.description,
     priceVnd: row.price,
     priceUsdCents: row.price_usd_cents,
+    discountPercent: english
+      ? row.discount_percent_international ?? 0
+      : row.discount_percent_vn ?? 0,
     // Vietnam and international sales types are intentionally independent.
     // A zero VND price means free in Vietnam; is_free belongs to the
     // international storefront only.
@@ -118,18 +134,70 @@ function mapSkill(row: PublicSkillRow, locale: StoreLocale): SkillProduct {
   };
 }
 
-function publishedSkillsQuery(locale: StoreLocale) {
+function publishedSkillsQuery(locale: StoreLocale, includeDiscounts = true) {
   // Supabase's fluent generic grows beyond TypeScript's instantiation limit when
   // optional locale filters are composed dynamically. The returned rows are still
   // checked with PublicSkillRow at the terminal query.
   const query: any = createAdminClient()
     .from("skills")
-    .select(publicSkillColumns)
+    .select([
+      ...basePublicSkillColumns,
+      ...(includeDiscounts ? discountColumns : []),
+    ].join(","))
     .eq("status", "published")
     .not("video_url", "is", null)
     .not("file_path", "is", null);
 
   return locale === "en" ? query.not("name_en", "is", null).neq("name_en", "") : query;
+}
+
+async function getPublishedSkillsRange(locale: StoreLocale, start: number, end: number) {
+  let includeDiscounts = true;
+  let useCustomOrder = true;
+
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const query = publishedSkillsQuery(locale, includeDiscounts);
+    const orderedQuery = useCustomOrder
+      ? query.order("sort_order", { ascending: true }).order("created_at", { ascending: true })
+      : query.order("featured", { ascending: false }).order("updated_at", { ascending: false });
+    const result = await orderedQuery.range(start, end) as {
+      data: PublicSkillRow[] | null;
+      error: { code?: string; message: string } | null;
+    };
+
+    if (includeDiscounts && isMissingDiscountFieldsError(result.error)) {
+      includeDiscounts = false;
+      continue;
+    }
+    if (useCustomOrder && isMissingSortOrderError(result.error)) {
+      useCustomOrder = false;
+      continue;
+    }
+    return result;
+  }
+
+  return {
+    data: null,
+    error: { message: "The Skill catalog could not be loaded." },
+  };
+}
+
+async function getPublishedSkill(locale: StoreLocale, slug: string) {
+  const result = await publishedSkillsQuery(locale)
+    .eq("slug", slug)
+    .maybeSingle() as {
+      data: PublicSkillRow | null;
+      error: { code?: string; message: string } | null;
+    };
+
+  if (!isMissingDiscountFieldsError(result.error)) return result;
+
+  return publishedSkillsQuery(locale, false)
+    .eq("slug", slug)
+    .maybeSingle() as Promise<{
+      data: PublicSkillRow | null;
+      error: { code?: string; message: string } | null;
+    }>;
 }
 
 async function countPublishedSkills(locale: StoreLocale) {
@@ -170,17 +238,11 @@ export async function getCatalogPage(page: number, locale: StoreLocale) {
   const pages = Math.max(1, Math.ceil(total / pageSize));
   const safePage = Math.min(Math.max(Math.trunc(page) || 1, 1), pages);
   const start = (safePage - 1) * pageSize;
-  const orderedResult = await publishedSkillsQuery(locale)
-    .order("sort_order", { ascending: true })
-    .order("created_at", { ascending: true })
-    .range(start, start + pageSize - 1) as { data: PublicSkillRow[] | null; error: { code?: string; message: string } | null };
-
-  const { data, error } = isMissingSortOrderError(orderedResult.error)
-    ? await publishedSkillsQuery(locale)
-        .order("featured", { ascending: false })
-        .order("updated_at", { ascending: false })
-        .range(start, start + pageSize - 1) as { data: PublicSkillRow[] | null; error: { code?: string; message: string } | null }
-    : orderedResult;
+  const { data, error } = await getPublishedSkillsRange(
+    locale,
+    start,
+    start + pageSize - 1,
+  );
 
   if (error || !data || (locale === "en" && isMissingInternationalFieldsError(error))) {
     return { items: [], page: safePage, pages, total: 0 };
@@ -192,9 +254,7 @@ export async function getCatalogPage(page: number, locale: StoreLocale) {
 export async function getCatalogSkill(slug: string, locale: StoreLocale) {
   if (!hasAdminDataConfig()) return getDemoSkill(slug);
 
-  const { data, error } = await publishedSkillsQuery(locale)
-    .eq("slug", slug)
-    .maybeSingle() as { data: PublicSkillRow | null; error: { code?: string; message: string } | null };
+  const { data, error } = await getPublishedSkill(locale, slug);
 
   if (!error && data) return mapSkill(data, locale);
   if (locale === "en" && isMissingInternationalFieldsError(error)) return undefined;

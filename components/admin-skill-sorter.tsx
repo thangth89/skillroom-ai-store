@@ -9,6 +9,7 @@ import {
   type SkillOrderActionState,
 } from "@/app/admin/skills/actions";
 import { formatUsdCents, formatVnd } from "@/lib/format";
+import { applyPercentageDiscount, normalizeDiscountPercent } from "@/lib/pricing";
 import type { SkillRecord, SkillStatus } from "@/lib/supabase/skill-records";
 
 const initialState: SkillOrderActionState = {
@@ -138,11 +139,21 @@ export function AdminSkillSorter({
           const displayName = skill.name_en?.trim() || skill.name;
           const displayCategory = skill.category_en?.trim() || skill.category;
           const vietnamIsFree = skill.price === 0;
+          const vietnamDiscount = vietnamIsFree
+            ? 0
+            : normalizeDiscountPercent(skill.discount_percent_vn);
+          const vietnamSalePrice = applyPercentageDiscount(skill.price, vietnamDiscount);
+          const internationalDiscount = skill.is_free
+            ? 0
+            : normalizeDiscountPercent(skill.discount_percent_international);
+          const internationalSalePrice = skill.price_usd_cents == null
+            ? null
+            : applyPercentageDiscount(skill.price_usd_cents, internationalDiscount);
           const internationalPrice = skill.is_free
             ? "Free"
-            : skill.price_usd_cents == null
+            : internationalSalePrice == null
               ? "Not set"
-              : formatUsdCents(skill.price_usd_cents);
+              : formatUsdCents(internationalSalePrice);
 
           return (
             <div
@@ -169,14 +180,24 @@ export function AdminSkillSorter({
                   <i className={`skill-sales-badge ${vietnamIsFree ? "free" : "paid"}`}>
                     {vietnamIsFree ? "Free" : "Paid"}
                   </i>
-                  <strong>{vietnamIsFree ? "0 ₫" : formatVnd(skill.price)}</strong>
+                  <span className="skill-market-price">
+                    {vietnamDiscount > 0 ? <del>{formatVnd(skill.price)}</del> : null}
+                    <strong>{vietnamIsFree ? "0 ₫" : formatVnd(vietnamSalePrice)}</strong>
+                    {vietnamDiscount > 0 ? <em>-{vietnamDiscount}%</em> : null}
+                  </span>
                 </span>
                 <span className="skill-market-offer">
                   <small>INTL</small>
                   <i className={`skill-sales-badge ${skill.is_free ? "free" : "paid"}`}>
                     {skill.is_free ? "Free" : "Paid"}
                   </i>
-                  <strong>{internationalPrice}</strong>
+                  <span className="skill-market-price">
+                    {internationalDiscount > 0 && skill.price_usd_cents != null
+                      ? <del>{formatUsdCents(skill.price_usd_cents)}</del>
+                      : null}
+                    <strong>{internationalPrice}</strong>
+                    {internationalDiscount > 0 ? <em>-{internationalDiscount}%</em> : null}
+                  </span>
                 </span>
               </span>
               <span className="skill-sort-status">

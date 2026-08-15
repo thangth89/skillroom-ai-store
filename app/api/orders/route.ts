@@ -1,11 +1,13 @@
 import { createAdminClient, hasAdminDataConfig } from "@/lib/supabase/admin";
 import { getPayOSClient, hasPayOSConfig } from "@/lib/payos";
+import { applyPercentageDiscount } from "@/lib/pricing";
 
 type PurchasableSkill = {
   id: string;
   slug: string;
   name: string;
   price: number;
+  discount_percent_vn?: number;
   version: string;
   file_path: string;
 };
@@ -31,6 +33,13 @@ function missingTransferContentColumn(error: { code?: string; message?: string }
     error?.code === "PGRST204" ||
     error?.code === "42703" ||
     error?.message?.includes("transfer_content") === true
+  );
+}
+
+function missingDiscountColumn(error: { code?: string; message?: string } | null) {
+  return (
+    (error?.code === "PGRST204" || error?.code === "42703") &&
+    error?.message?.toLowerCase().includes("discount_percent_vn") === true
   );
 }
 
@@ -67,20 +76,36 @@ export async function POST(request: Request) {
   }
 
   const supabase = createAdminClient();
-  const { data: skill, error: skillError } = await supabase
+  let { data: skill, error: skillError } = await supabase
     .from("skills")
-    .select("id, slug, name, price, version, file_path")
+    .select("id, slug, name, price, discount_percent_vn, version, file_path")
     .eq("slug", slug)
     .eq("status", "published")
     .not("file_path", "is", null)
     .not("video_url", "is", null)
     .maybeSingle<PurchasableSkill>();
 
+  // Keep existing checkouts available until the discount migration is applied.
+  if (missingDiscountColumn(skillError)) {
+    const fallback = await supabase
+      .from("skills")
+      .select("id, slug, name, price, version, file_path")
+      .eq("slug", slug)
+      .eq("status", "published")
+      .not("file_path", "is", null)
+      .not("video_url", "is", null)
+      .maybeSingle<PurchasableSkill>();
+    skill = fallback.data;
+    skillError = fallback.error;
+  }
+
   // The international is_free flag must never block a paid Vietnamese order.
   // Vietnam is free only when its independent VND price is exactly zero.
   if (skillError || !skill || skill.price <= 0) {
     return Response.json({ error: "Skill này chưa sẵn sàng để thanh toán." }, { status: 404 });
   }
+
+  const checkoutPrice = applyPercentageDiscount(skill.price, skill.discount_percent_vn);
 
   let order: {
     id: string;
@@ -99,8 +124,8 @@ export async function POST(request: Request) {
         customer_email: email,
         status: "pending",
         currency: "VND",
-        subtotal: skill.price,
-        total: skill.price,
+        subtotal: checkoutPrice,
+        total: checkoutPrice,
         payos_order_code: payosOrderCode,
         transfer_content: transferContent,
       })
@@ -121,8 +146,8 @@ export async function POST(request: Request) {
           customer_email: email,
           status: "pending",
           currency: "VND",
-          subtotal: skill.price,
-          total: skill.price,
+          subtotal: checkoutPrice,
+          total: checkoutPrice,
           payos_order_code: payosOrderCode,
         })
         .select("id, order_code, payos_order_code")
@@ -151,7 +176,7 @@ export async function POST(request: Request) {
     skill_slug: skill.slug,
     version: skill.version,
     file_path: skill.file_path,
-    unit_price: skill.price,
+    unit_price: checkoutPrice,
     quantity: 1,
   });
 
@@ -168,10 +193,10 @@ export async function POST(request: Request) {
   try {
     const paymentLink = await getPayOSClient().paymentRequests.create({
       orderCode: order.payos_order_code,
-      amount: skill.price,
+      amount: checkoutPrice,
       description: order.transfer_content,
       buyerEmail: email,
-      items: [{ name: skill.name.slice(0, 100), quantity: 1, price: skill.price }],
+      items: [{ name: skill.name.slice(0, 100), quantity: 1, price: checkoutPrice }],
       cancelUrl,
       returnUrl,
       expiredAt,
@@ -192,7 +217,7 @@ export async function POST(request: Request) {
       order_id: order.id,
       provider: "payos",
       provider_reference: paymentLink.paymentLinkId,
-      amount: skill.price,
+      amount: checkoutPrice,
       status: "PENDING",
     });
 

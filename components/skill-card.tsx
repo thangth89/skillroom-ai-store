@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { formatUsdCents, formatVnd } from "@/lib/format";
 import type { StoreLocale } from "@/lib/locale";
 import type { SkillProduct } from "@/lib/types";
+import { StorePrice } from "@/components/store-price";
 import { VideoPreview } from "@/components/video-preview";
 
 export function SkillCard({ skill, locale, priority = false }: { skill: SkillProduct; locale: StoreLocale; priority?: boolean }) {
@@ -24,15 +24,7 @@ export function SkillCard({ skill, locale, priority = false }: { skill: SkillPro
         <h2><Link href={`/skills/${skill.slug}`}>{skill.name}</Link></h2>
         <p>{skill.shortDescription}</p>
         <div className="card-bottom">
-          <strong className={skill.isFree ? "free-price" : ""}>
-            {skill.isFree
-              ? vi ? "Miễn phí" : "Free"
-              : vi
-                ? formatVnd(skill.priceVnd)
-                : skill.priceUsdCents === null
-                  ? "Coming soon"
-                  : formatUsdCents(skill.priceUsdCents)}
-          </strong>
+          <StorePrice locale={locale} skill={skill} variant="card" />
           <Link className="text-link" href={`/skills/${skill.slug}`}>
             {vi ? "Xem chi tiết" : skill.isFree ? "Get free" : "View details"} <span aria-hidden="true">↗</span>
           </Link>
