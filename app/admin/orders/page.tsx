@@ -1,6 +1,11 @@
 import Link from "next/link";
 import { resendOrderEmail } from "@/app/admin/orders/actions";
 import { AdminShell } from "@/components/admin-shell";
+import {
+  adminOrderFilterParams,
+  getAdminOrders,
+  parseAdminOrderFilters,
+} from "@/lib/admin-orders";
 import { hasEmailDeliveryConfig } from "@/lib/delivery";
 import { formatOrderAmount } from "@/lib/format";
 import { getOrderTransferContent, type OrderStatus } from "@/lib/orders";
@@ -16,39 +21,17 @@ const statusLabel: Record<OrderStatus, string> = {
   refunded: "Đã hoàn tiền",
 };
 
-type AdminOrder = {
-  id: string;
-  order_code: string;
-  customer_email: string;
-  status: OrderStatus;
-  total: number;
-  currency: string;
-  payos_order_code: number | null;
-  transfer_content: string | null;
-  created_at: string;
-};
-
-export default async function AdminOrdersPage({ searchParams }: { searchParams: Promise<{ delivery?: string; q?: string }> }) {
+export default async function AdminOrdersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ delivery?: string; q?: string; from?: string; to?: string }>;
+}) {
   await requireAdmin();
   const query = await searchParams;
-  const searchTerm = query.q?.trim().slice(0, 120) ?? "";
+  const filters = parseAdminOrderFilters(query);
+  const searchTerm = filters.searchTerm;
   const supabase = createAdminClient();
-  let orders: AdminOrder[] = [];
-  let ordersError: { message: string } | null = null;
-  if (searchTerm.length >= 2) {
-    const searchResult = await supabase.rpc("search_admin_orders", { search_term: searchTerm });
-    orders = Array.isArray(searchResult.data) ? searchResult.data as AdminOrder[] : [];
-    ordersError = searchResult.error;
-  } else {
-    const recentResult = await supabase
-      .from("orders")
-      .select("id, order_code, customer_email, status, total, currency, payos_order_code, transfer_content, created_at")
-      .order("created_at", { ascending: false })
-      .limit(100)
-      .returns<AdminOrder[]>();
-    orders = recentResult.data ?? [];
-    ordersError = recentResult.error;
-  }
+  const { orders, error: ordersError } = await getAdminOrders(filters);
   const deliveryItemsResult = orders.length
     ? await supabase
         .from("order_items")
@@ -59,26 +42,47 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
     : { data: [], error: null };
   const deliveryOrderIds = new Set((deliveryItemsResult.data ?? []).map((item) => item.order_id));
   const emailReady = hasEmailDeliveryConfig();
+  const activeFilters = Boolean(searchTerm || filters.fromDate || filters.toDate);
+  const exportParams = adminOrderFilterParams(filters).toString();
+  const exportHref = `/api/admin/orders/export${exportParams ? `?${exportParams}` : ""}`;
 
   return (
     <AdminShell eyebrow="BÁN HÀNG" title="Đơn hàng">
       <section className="admin-panel">
-        <div className="panel-heading"><div><span>{orders.length} {searchTerm ? "KẾT QUẢ" : "ĐƠN GẦN NHẤT"}</span><h2>Tất cả thị trường</h2></div></div>
-        <form className="admin-order-search" method="get">
-          <label htmlFor="order-search">Tìm đơn hàng</label>
-          <div>
-            <input defaultValue={searchTerm} id="order-search" minLength={2} name="q" placeholder="Mã đơn, nội dung chuyển khoản hoặc email" type="search" />
-            <button className="primary-button" type="submit">Tìm đơn</button>
-            {searchTerm ? <Link className="secondary-button" href="/admin/orders">Xóa tìm kiếm</Link> : null}
+        <div className="panel-heading"><div><span>{orders.length} {activeFilters ? "KẾT QUẢ LỌC" : "ĐƠN GẦN NHẤT"}</span><h2>Tất cả thị trường</h2></div></div>
+        <form className="admin-order-filters" method="get">
+          <div className="admin-order-filter-grid">
+            <label className="admin-order-filter-search" htmlFor="order-search">
+              <span>Tìm đơn hàng</span>
+              <input defaultValue={searchTerm} id="order-search" minLength={2} name="q" placeholder="Mã đơn, nội dung chuyển khoản hoặc email" type="search" />
+            </label>
+            <label htmlFor="order-from-date">
+              <span>Từ ngày</span>
+              <input defaultValue={filters.fromDate} id="order-from-date" name="from" type="date" />
+            </label>
+            <label htmlFor="order-to-date">
+              <span>Đến ngày</span>
+              <input defaultValue={filters.toDate} id="order-to-date" name="to" type="date" />
+            </label>
           </div>
-          <small>Có thể nhập nguyên nội dung chuyển khoản khách đọc từ sao kê, kể cả khi có khoảng trắng.</small>
+          <div className="admin-order-filter-actions">
+            <button className="primary-button" type="submit">Lọc đơn hàng</button>
+            {filters.error ? (
+              <span className="secondary-button disabled">Không thể xuất Excel</span>
+            ) : (
+              <a className="secondary-button admin-export-button" download href={exportHref}>Tải file Excel ↓</a>
+            )}
+            {activeFilters ? <Link className="admin-clear-filter" href="/admin/orders">Xóa bộ lọc</Link> : null}
+          </div>
+          <small>Ngày được tính theo giờ Việt Nam. File Excel sẽ dùng đúng bộ lọc đang chọn trên màn hình.</small>
         </form>
+        {filters.error ? <div className="admin-form-error">{filters.error}</div> : null}
         {query.delivery === "sent" ? <div className="admin-form-success">Đã gửi lại email bàn giao.</div> : null}
         {query.delivery === "config" ? <div className="admin-form-error">Chưa cấu hình RESEND_API_KEY và EMAIL_FROM trên Vercel.</div> : null}
         {query.delivery === "error" ? <div className="admin-form-error">Không thể gửi email. Hãy kiểm tra Resend Logs và biến môi trường.</div> : null}
         {ordersError ? <div className="admin-form-error">Không thể tải đơn hàng: {ordersError.message}</div> : null}
         {!ordersError && orders.length === 0 ? (
-          <div className="admin-list-empty"><strong>{searchTerm ? "Không tìm thấy đơn phù hợp." : "Chưa có đơn hàng."}</strong><p>Đơn payOS, miễn phí và quốc tế sẽ cùng xuất hiện tại đây.</p></div>
+          <div className="admin-list-empty"><strong>{activeFilters ? "Không tìm thấy đơn phù hợp với bộ lọc." : "Chưa có đơn hàng."}</strong><p>Đơn payOS, miễn phí và quốc tế sẽ cùng xuất hiện tại đây.</p></div>
         ) : null}
         {orders.length ? (
           <div className="admin-table">
