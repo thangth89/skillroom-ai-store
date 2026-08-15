@@ -38,6 +38,7 @@ type ParsedSkill = {
   version: string;
   status: SkillStatus;
   video_url: string | null;
+  tutorial_video_url: string | null;
   accent: string;
   accent_soft: string;
   featured: boolean;
@@ -93,6 +94,7 @@ function parseSkill(formData: FormData):
   const discountPercentVn = vietnamSaleType === "free" ? 0 : parsedDiscountVn;
   const statusValue = getText(formData, "status") as SkillStatus;
   const videoValue = getText(formData, "video_url");
+  const tutorialVideoValue = getText(formData, "tutorial_video_url");
   const accent = getText(formData, "accent") || "#b8ff6a";
   const accentSoft = getText(formData, "accent_soft") || "#19351e";
   const nameEn = getText(formData, "name_en");
@@ -191,6 +193,17 @@ function parseSkill(formData: FormData):
     }
   }
 
+  let tutorialVideoUrl: string | null = null;
+  if (tutorialVideoValue) {
+    try {
+      const parsedUrl = new URL(tutorialVideoValue);
+      if (parsedUrl.protocol !== "https:") throw new Error("invalid protocol");
+      tutorialVideoUrl = parsedUrl.toString();
+    } catch {
+      return { data: null, error: "The tutorial video URL must be a valid HTTPS address." };
+    }
+  }
+
   if (statusValue === "published" && !videoUrl) {
     return {
       data: null,
@@ -211,6 +224,7 @@ function parseSkill(formData: FormData):
       version,
       status: statusValue,
       video_url: videoUrl,
+      tutorial_video_url: tutorialVideoUrl,
       accent,
       accent_soft: accentSoft,
       featured: formData.get("featured") === "on",
@@ -279,6 +293,9 @@ async function uploadSkillFile(slug: string, file: File) {
 }
 
 function dataErrorMessage(message: string, code?: string) {
+  if (message.toLowerCase().includes("tutorial_video_url")) {
+    return "Tutorial videos are not enabled in Supabase yet. Run migration 202608150002_skill_tutorial_video.sql, then save again.";
+  }
   if (
     message.toLowerCase().includes("discount_percent_vn") ||
     message.toLowerCase().includes("discount_percent_international")

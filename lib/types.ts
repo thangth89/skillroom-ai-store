@@ -14,6 +14,7 @@ export type SkillProduct = {
   category: SkillCategory;
   version: string;
   videoSrc: string;
+  tutorialVideoSrc?: string | null;
   accent: string;
   accentSoft: string;
   featured?: boolean;

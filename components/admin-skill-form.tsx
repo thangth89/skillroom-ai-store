@@ -295,6 +295,19 @@ export function AdminSkillForm({ skill }: { skill?: SkillRecord }) {
             <small>Public MP4, YouTube, Facebook Video/Reel or Instagram Post/Reel URL.</small>
           </label>
           <label className="wide-field">
+            <span>Tutorial video URL (optional)</span>
+            <input
+              defaultValue={skill?.tutorial_video_url ?? ""}
+              name="tutorial_video_url"
+              placeholder="https://youtu.be/... or https://.../tutorial.mp4"
+              type="url"
+            />
+            <small>
+              Leave blank to keep the current detail page unchanged. Supports public MP4,
+              YouTube, Facebook Video/Reel and Instagram Post/Reel URLs.
+            </small>
+          </label>
+          <label className="wide-field">
             <span>{skill?.file_path ? "Replace Skill file" : "Skill file"}</span>
             <input accept=".skill,.zip,.md,.txt,.json" name="skill_file" type="file" />
             <small>

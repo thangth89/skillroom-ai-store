@@ -20,7 +20,8 @@ Phần đăng nhập quản trị đã có sẵn trong mã nguồn. Hãy hoàn t
 1. Mở **SQL Editor** trong Supabase.
 2. Sao chép và chạy các file trong `supabase/migrations` theo thứ tự tên file. Với website đã có dữ liệu, chỉ cần chạy những migration mới chưa từng chạy.
 3. Migration giảm giá hiện tại là `202608150001_skill_discounts.sql`; file này thêm phần trăm giảm riêng cho thị trường Việt Nam và quốc tế mà không thay đổi giá gốc.
-4. Các migration bật Row Level Security và không cấp quyền đọc/ghi trực tiếp cho khách truy cập.
+4. Migration video hướng dẫn là `202608150002_skill_tutorial_video.sql`; trường này không bắt buộc và chỉ hiển thị trên trang chi tiết khi có URL.
+5. Các migration bật Row Level Security và không cấp quyền đọc/ghi trực tiếp cho khách truy cập.
 
 ## 4. Thêm biến môi trường trên Vercel
 

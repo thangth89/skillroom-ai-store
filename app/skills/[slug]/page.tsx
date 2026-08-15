@@ -50,6 +50,30 @@ export default async function SkillDetailPage({ params }: { params: Promise<{ sl
         </div>
         <VideoPreview id={`detail-${skill.slug}`} src={skill.videoSrc} label={skill.name} accent={skill.accent} accentSoft={skill.accentSoft} detail locale={locale} />
       </section>
+      {skill.tutorialVideoSrc ? (
+        <section className="detail-tutorial shell">
+          <div className="detail-tutorial-copy">
+            <span>{vi ? "VIDEO HƯỚNG DẪN" : "TUTORIAL VIDEO"}</span>
+            <h2>{vi ? "Xem cách sử dụng Skill." : "See how to use this Skill."}</h2>
+            <p>
+              {vi
+                ? "Video hướng dẫn giúp bạn bắt đầu nhanh và sử dụng đúng quy trình sau khi nhận Skill."
+                : "Follow the tutorial to get started quickly and use the workflow correctly after delivery."}
+            </p>
+          </div>
+          <VideoPreview
+            id={`tutorial-${skill.slug}`}
+            src={skill.tutorialVideoSrc}
+            label={skill.name}
+            accent={skill.accent}
+            accentSoft={skill.accentSoft}
+            className="tutorial-video-frame"
+            detail
+            kind="tutorial"
+            locale={locale}
+          />
+        </section>
+      ) : null}
       <section className="detail-content shell">
         <article><span className="section-index">{vi ? "KẾT QUẢ" : "OUTCOMES"}</span><h2>{vi ? "Skill giúp bạn kiểm soát điều gì?" : "What does this Skill help you control?"}</h2><ul>{skill.outcomes.map((item) => <li key={item}>{item}</li>)}</ul></article>
         <article><span className="section-index">{vi ? "BẠN NHẬN ĐƯỢC" : "WHAT YOU GET"}</span><h2>{vi ? "Gói bàn giao rõ ràng." : "A clear, usable delivery package."}</h2><ul>{skill.deliverables.map((item) => <li key={item}>{item}</li>)}</ul></article>
